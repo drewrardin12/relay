@@ -1,4 +1,5 @@
 import {icon} from './icons.mjs';
+import {prepareDriveSignIn,authorizeDrive,driveAuthorized,disconnectDrive,syncWorkingCopy,payloadHash} from './drive-sync.mjs';
 import {applyRecipientUpdate} from './recipient-import.mjs';
 import {isFriend,recipientEmails,contactFilter} from './recipient-tools.mjs';
 import {normalizeContact} from './domain.mjs';
@@ -22,6 +23,7 @@ async function openWorkingCopy(){try{return await loadWorkingCopy();}catch(error
 let state=await openWorkingCopy(),wing='helm',directoryFilter='All',searchText='',expanded=false,planningOverride=null,goalYear=new Date().getFullYear(),tideFilter='Active';
 let startupSaveFailed=false;
 let sheetsReport=null,sheetsBusy=false,sheetsConnectionError='';
+let driveBusy=false,driveMessage='';
 recoverCoordinates(state.contacts);reconcileContactDesignations(state);try{await persist(state);}catch{startupSaveFailed=true;}
 const app=document.querySelector('#app'),main=document.querySelector('#main'),sheet=document.querySelector('#sheet');
 const e=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -93,8 +95,13 @@ function render(){
  app.dataset.wing=wing;
  const views={emailhistory:renderEmailHistory,helm:renderHelm,manifest:renderManifest,voyage:renderVoyage,tides:renderTides,calendar:renderCalendar,day:()=>renderDay(id),goal:()=>renderFinance(state,goalYear,{e,MONEY,PRECISE,topbar,btn,section,compassChart}),settings:renderSettings,importreview:renderImportReview,offcourse:renderOffCourse,relays:renderRelayList,contact:()=>renderContact(c),calling:()=>renderCalling(c),tide:()=>renderTide(id),courselist:renderCourseList,ledger:renderLedger};
  main.innerHTML=`<div class="working-label">${icon(state.mode==='demo'?'info':'download')}${state.mode==='demo'?'Design build · demo data only':'Working copy · not writing to your live app'}</div>${(views[page]||renderHelm)()}`;
+ if(page==='settings')main.insertAdjacentHTML('beforeend',renderDriveSettings());
  document.querySelector('.dock').innerHTML=['helm','manifest','voyage','tides'].map(w=>`<button data-action="route" data-route="#${w}" class="${w===wing?'active':''}" ${w===wing?'aria-current="page"':''}>${icon(w)}<span>${w[0].toUpperCase()+w.slice(1)}</span>${w==='tides'&&activeTides().filter(t=>tideGroup(t)==='Overdue').length?`<span class="nav-count">${activeTides().filter(t=>tideGroup(t)==='Overdue').length}</span>`:''}</button>`).join('');
  document.title=`Relay · ${page==='contact'&&c?c.pastor:page||'Helm'}`;
+}
+function renderDriveSettings(){
+ prepareDriveSignIn().catch(()=>{});
+ return `<div class="page">${section('Private device sync')}<div class="panel"><h3>Google Drive · complete working copy</h3><p class="small subtle">Contacts, history, reminders, meetings, calendar snapshots, email review and financial records. Sync is manual: sync before and after editing each device. Google Calendar and legacy Sheets are not changed.</p><p class="small">${driveAuthorized()?'Drive authorized for this session':'Not connected'}</p>${state.cloudSync?`<p class="tiny subtle">Last verified ${e(state.cloudSync.checkedAt)} · ${e(state.cloudSync.email)}</p>`:''}<p class="small" role="status">${e(driveMessage)}</p><div class="stack">${driveAuthorized()?`${btn('drive-sync','Sync now','primary wide',driveBusy?'disabled':'')}${btn('drive-load','Load cloud copy on this device','secondary wide',driveBusy?'disabled':'')}${btn('drive-disconnect','Disconnect private Drive','secondary wide',driveBusy?'disabled':'')}`:btn('drive-connect','Connect private Google Drive','primary wide',driveBusy?'disabled':'')}</div><p class="tiny subtle">Choose the same Google account on all devices. Every upload is a new revision; conflicting edits stop for review. Your old cloud revisions are retained and consume Drive storage. Keep exported backups. Close other Relay tabs before syncing.</p></div></div>`;
 }
 function renderHelm(){
  const reach=helmStats(state);
@@ -189,6 +196,23 @@ function googleTemplate(m,c){const start=m.date.replaceAll('-',''),end=iso(addDa
 async function action(a,el){
  const id=el.dataset.id,c=contact(id);
  switch(a){
+  case 'drive-connect':
+   try{await authorizeDrive();driveMessage='Drive connected for this session. Nothing uploaded yet.';}catch(error){driveMessage=error.message;}render();break;
+  case 'drive-disconnect':disconnectDrive();driveMessage='Disconnected. Local and cloud records are unchanged.';render();break;
+  case 'drive-sync':case 'drive-load':{
+   if(driveBusy)return;
+   if(a==='drive-load'&&!confirm('Replace this device’s working copy with the private cloud copy? A local recovery backup is saved first. Export a file backup too if this device has unique edits.'))return;
+   driveBusy=true;driveMessage='Checking private Drive…';render();
+   try{
+    const before=await payloadHash(state),snapshot=JSON.parse(exportData(state));
+    const result=await syncWorkingCopy(snapshot,{load:a==='drive-load',expectedEmail:state.emailHistory?.mailbox||state.cloudSync?.email,validate:parseImport,backup:saveSheetsBackup});
+    if(await payloadHash(state)!==before)throw Error('You edited this device during sync. Your local edits are preserved. Check again before loading a cloud copy.');
+    result.next.recents=(state.recents||[]).filter(id=>result.next.contacts.some(c=>c.id===id));result.next.course=null;
+    await persist(result.next);state=result.next;
+    driveMessage=result.status==='loaded'?'Complete cloud copy loaded and saved on this device.':result.status==='saved'?'Complete copy saved to private Drive and verified.':'This device matches the private cloud copy.';toast(driveMessage);
+   }catch(error){driveMessage=error.message;toast(error.message);}
+   finally{driveBusy=false;render();}break;
+  }
   case 'sheets-connect':case 'sheets-check':case 'sheets-enable-write':{
    if(sheetsBusy)return;sheetsBusy=true;sheetsConnectionError='';
    try{if(a==='sheets-enable-write'||!sheetsAuthorized())await authorizeSheets(a==='sheets-enable-write');const snapshot=await readSheetsSnapshot();sheetsReport={...compareSheetContacts(state,snapshot),differences:sheetIdentityDifferences(snapshot),checkedAt:snapshot.checkedAt,history:snapshot.tables.filter(table=>!['Contacts','Manifest'].includes(table.title)).map(table=>({title:table.title,count:table.rows.length}))};toast(a==='sheets-enable-write'?'Write permission approved · no sheet records changed':'Sheets checked · no sheet records changed');}
