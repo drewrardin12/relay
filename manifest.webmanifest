@@ -1,0 +1,10 @@
+{
+  "name": "Relay — Ministry at the Helm",
+  "short_name": "Relay",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1b2b",
+  "theme_color": "#0b1b2b",
+  "icons": [{"src": "relay-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},{"src": "relay-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"}]
+}
