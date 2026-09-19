@@ -1,6 +1,12 @@
 import {CLIENT_ID,prepareSheetsSignIn} from './sheets-connection.mjs';
 export const DRIVE_SCOPE='https://www.googleapis.com/auth/drive.appdata';
 let client,token='',expires=0,pending;
+const SESSION_KEY='relay-private-drive-session-v1';
+try{
+ const saved=typeof sessionStorage==='undefined'?null:JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null');
+ if(saved?.token&&Number(saved.expires)>Date.now()){token=saved.token;expires=Number(saved.expires);}
+ else if(typeof sessionStorage!=='undefined')sessionStorage.removeItem(SESSION_KEY);
+}catch{if(typeof sessionStorage!=='undefined')sessionStorage.removeItem(SESSION_KEY);}
 const hosted=()=>Boolean(window.google?.script?.run);
 export const privateHostActive=hosted;
 const hostCall=(action,payload)=>new Promise((resolve,reject)=>window.google.script.run.withSuccessHandler(value=>{try{resolve(typeof value==='string'?JSON.parse(value):value);}catch{reject(Error('The private host returned an invalid response.'));}}).withFailureHandler(()=>reject(Error('The private host could not complete this request. Nothing was overwritten.'))).relayCloud(action,JSON.stringify(payload||{})));
@@ -8,12 +14,12 @@ export async function prepareDriveSignIn(){
  if(hosted())return;
  await prepareSheetsSignIn();
  if(!client)client=window.google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:DRIVE_SCOPE,include_granted_scopes:false,
-  callback:r=>{const p=pending;pending=null;if(!p)return;if(r.error||!r.access_token||!window.google.accounts.oauth2.hasGrantedAllScopes(r,DRIVE_SCOPE)){p.reject(Error('Drive access was not approved. Nothing uploaded.'));return;}token=r.access_token;expires=Date.now()+Number(r.expires_in||3600)*1000-60000;p.resolve();},
+  callback:r=>{const p=pending;pending=null;if(!p)return;if(r.error||!r.access_token||!window.google.accounts.oauth2.hasGrantedAllScopes(r,DRIVE_SCOPE)){p.reject(Error('Drive access was not approved. Nothing uploaded.'));return;}token=r.access_token;expires=Date.now()+Number(r.expires_in||3600)*1000-60000;if(typeof sessionStorage!=='undefined')sessionStorage.setItem(SESSION_KEY,JSON.stringify({token,expires}));p.resolve();},
   error_callback:error=>{pending?.reject(Error(error?.type==='popup_failed_to_open'?'Google sign-in could not open. Allow pop-ups or use Safari directly.':error?.type==='popup_closed'?'Google sign-in closed before approval returned to Relay. Nothing uploaded.':'Google sign-in did not return approval to Relay. Nothing uploaded.'));pending=null;}});
 }
 export function driveAuthorized(){return hosted()||Boolean(token&&Date.now()<expires);}
-export function disconnectDrive(){token='';expires=0;}
-export function authorizeDrive(){if(hosted())return Promise.resolve();if(!client)return Promise.reject(Error('Google sign-in is loading. Try again shortly.'));if(pending)return Promise.reject(Error('Finish the open Google sign-in first.'));return new Promise((resolve,reject)=>{pending={resolve,reject};client.requestAccessToken({scope:DRIVE_SCOPE,prompt:'select_account'});});}
+export function disconnectDrive(){token='';expires=0;if(typeof sessionStorage!=='undefined')sessionStorage.removeItem(SESSION_KEY);}
+export function authorizeDrive({silent=false}={}){if(hosted())return Promise.resolve();if(!client)return Promise.reject(Error('Google sign-in is loading. Try again shortly.'));if(pending)return Promise.reject(Error('Finish the open Google sign-in first.'));return new Promise((resolve,reject)=>{pending={resolve,reject};client.requestAccessToken({scope:DRIVE_SCOPE,prompt:silent?'':'select_account'});});}
 function canonical(value){if(Array.isArray(value))return value.map(canonical);if(value&&typeof value==='object')return Object.fromEntries(Object.keys(value).sort().map(k=>[k,canonical(value[k])]));return value;}
 export function syncPayload(state){const {cloudSync,exportedAt,recents,course,...data}=state;return canonical(data);}
 export async function payloadHash(state){const bytes=new TextEncoder().encode(JSON.stringify(syncPayload(state)));return [...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(b=>b.toString(16).padStart(2,'0')).join('');}

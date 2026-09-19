@@ -1,5 +1,5 @@
 import {icon} from './icons.mjs';
-import {prepareDriveSignIn,authorizeDrive,driveAuthorized,disconnectDrive,syncWorkingCopy,payloadHash,privateHostActive} from './drive-sync.mjs?v=20260918-private-host';
+import {prepareDriveSignIn,authorizeDrive,driveAuthorized,disconnectDrive,syncWorkingCopy,payloadHash,privateHostActive} from './drive-sync.mjs?v=20260919-github-auto';
 import {applyRecipientUpdate} from './recipient-import.mjs';
 import {isFriend,recipientEmails,contactFilter} from './recipient-tools.mjs';
 import {normalizeContact} from './domain.mjs';
@@ -51,11 +51,11 @@ function greeting(){const h=new Date().getHours();return h<12?'Good morning':h<1
 function light(){const h=new Date().getHours();return h<7||h>=21?'night':h<12?'morning':h<17?'day':'evening';}
 function dailyVerse(){const n=Math.floor((Date.UTC(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()))/86400000);const [text,ref]=VERSES[n%VERSES.length];return `<div class="verse">“${e(text)}”<cite>${e(ref)}</cite></div>`;}
 function scheduleAutoSync(){
- if(!privateHostActive()||!state.cloudSync)return;
+ if(!driveAuthorized()||!state.cloudSync)return;
  clearTimeout(autoSyncTimer);autoSyncTimer=setTimeout(()=>autoSync(),12000);
 }
 async function autoSync(load=false){
- if(!privateHostActive())return;
+ if(!driveAuthorized())return;
  if(autoSyncRunning||driveBusy){autoSyncQueued=true;return;}
  autoSyncRunning=true;driveMessage=load?'Loading the private cloud copy…':'Checking private Drive automatically…';render();
  try{
@@ -122,7 +122,7 @@ function render(){
 }
 function renderDriveSettings(){
  prepareDriveSignIn().catch(()=>{});
- return `<div class="page">${section('Private device sync')}<div class="panel"><h3>Google Drive · complete working copy</h3><p class="small subtle">Contacts, history, reminders, meetings, calendar snapshots, email review and financial records. Relay checks the private cloud whenever it opens and saves changes shortly after you stop editing. Google Calendar and legacy Sheets are not changed.</p><p class="small">${privateHostActive()?'Private Google account host active':driveAuthorized()?'Drive authorized for this session':'Not connected'}</p>${state.cloudSync?`<p class="tiny subtle">Last verified ${e(state.cloudSync.checkedAt)} · ${e(state.cloudSync.email)}</p>`:''}<p class="small" role="status">${e(driveMessage)}</p><div class="stack">${driveAuthorized()?`${btn('drive-sync','Sync now','primary wide',driveBusy?'disabled':'')}${btn('drive-load','Load cloud copy on this device','secondary wide',driveBusy?'disabled':'')}${privateHostActive()?'':btn('drive-disconnect','Disconnect private Drive','secondary wide',driveBusy?'disabled':'')}`:btn('drive-connect','Connect private Google Drive','primary wide',driveBusy?'disabled':'')}</div><p class="tiny subtle">“Sync now” is only a manual backup check. Choose the same Google account on all devices. Every upload is a new revision; conflicting edits stop for review. Your old cloud revisions are retained and consume Drive storage. Keep exported backups.</p></div></div>`;
+ return `<div class="page">${section('Private device sync')}<div class="panel"><h3>Google Drive · complete working copy</h3><p class="small subtle">Contacts, history, reminders, meetings, calendar snapshots, email review and financial records. Once Google is connected, Relay checks the private cloud when it opens and saves changes shortly after you stop editing. Google Calendar and legacy Sheets are not changed.</p><p class="small">${privateHostActive()?'Private Google account host active':driveAuthorized()?'Private Drive connected':'Connect Google once on this device'}</p>${state.cloudSync?`<p class="tiny subtle">Last verified ${e(state.cloudSync.checkedAt)} · ${e(state.cloudSync.email)}</p>`:''}<p class="small" role="status">${e(driveMessage)}</p><div class="stack">${driveAuthorized()?`${btn('drive-sync','Check sync now','primary wide',driveBusy?'disabled':'')}${btn('drive-load','Load cloud copy on this device','secondary wide',driveBusy?'disabled':'')}${privateHostActive()?'':btn('drive-disconnect','Disconnect private Drive','secondary wide',driveBusy?'disabled':'')}`:btn('drive-connect','Connect private Google Drive','primary wide',driveBusy?'disabled':'')}</div><p class="tiny subtle">Normal changes save automatically. “Check sync now” is an optional backup check. Choose the same Google account on all devices. Conflicting edits stop safely for review, and every cloud revision is retained.</p></div></div>`;
 }
 function renderHelm(){
  const reach=helmStats(state);
@@ -220,7 +220,7 @@ async function action(a,el){
   case 'drive-connect':
    if(driveBusy)return;
    driveBusy=true;driveMessage='Waiting for Google approval. Keep this Relay window open; nothing is uploaded by connecting.';render();
-   try{await authorizeDrive();driveMessage='Drive connected for this session. Nothing uploaded yet.';}catch(error){driveMessage=error.message;}finally{driveBusy=false;render();}break;
+   try{await authorizeDrive();driveBusy=false;driveMessage=state.contacts.length?'Drive connected. Checking your private copy…':'Drive connected. Loading your private copy…';render();await autoSync(!state.contacts.length);}catch(error){driveMessage=error.message;}finally{driveBusy=false;render();}break;
   case 'drive-disconnect':disconnectDrive();driveMessage='Disconnected. Local and cloud records are unchanged.';render();break;
   case 'drive-sync':case 'drive-load':{
    if(driveBusy)return;
@@ -375,7 +375,14 @@ window.addEventListener('offline',()=>toast('Offline · your working copy remain
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(state.course?.mode==='state'&&state.course.selectedDate!==iso()){state.course=null;save('');}render();}});
 if(state.course?.mode==='state'&&state.course.selectedDate!==iso()){state.course=null;save('');}
 render();
-if(privateHostActive())autoSync(!state.contacts.length);
+async function startPrivateSync(){
+ try{
+  await prepareDriveSignIn();
+  if(!driveAuthorized()&&state.cloudSync&&!privateHostActive())await authorizeDrive({silent:true});
+  if(driveAuthorized())await autoSync(!state.contacts.length);
+ }catch{/* Google may require one visible Connect tap after the browser fully closes. */}
+}
+startPrivateSync();
 if(startupSaveFailed)toast('Browser storage is full. Your saved copy is intact; export a backup before editing.');
 const donorEmailReminders=missingDonorEmails(state.contacts);
 if(donorEmailReminders.length)openSheet('Add supporting donors’ emails',`<p class="small subtle">These supporting individuals still need email addresses for your email list. Tap a name to edit their details.</p><div class="stack">${donorEmailReminders.map(c=>btn('donor-email-edit',e(c.pastor||c.givingDonorLabel),'secondary wide donor-email-reminder',`data-id="${e(c.id)}" aria-label="Add email for ${e(c.pastor||c.givingDonorLabel)}"`)).join('')}</div><p class="hint">This reminder returns when you open the app until all four have email addresses.</p>${btn('close-sheet','Later','secondary wide')}`);
