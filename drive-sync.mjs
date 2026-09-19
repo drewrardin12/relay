@@ -1,15 +1,19 @@
 import {CLIENT_ID,prepareSheetsSignIn} from './sheets-connection.mjs';
 export const DRIVE_SCOPE='https://www.googleapis.com/auth/drive.appdata';
 let client,token='',expires=0,pending;
+const hosted=()=>Boolean(window.google?.script?.run);
+export const privateHostActive=hosted;
+const hostCall=(action,payload)=>new Promise((resolve,reject)=>window.google.script.run.withSuccessHandler(value=>{try{resolve(typeof value==='string'?JSON.parse(value):value);}catch{reject(Error('The private host returned an invalid response.'));}}).withFailureHandler(()=>reject(Error('The private host could not complete this request. Nothing was overwritten.'))).relayCloud(action,JSON.stringify(payload||{})));
 export async function prepareDriveSignIn(){
+ if(hosted())return;
  await prepareSheetsSignIn();
  if(!client)client=window.google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:DRIVE_SCOPE,include_granted_scopes:false,
   callback:r=>{const p=pending;pending=null;if(!p)return;if(r.error||!r.access_token||!window.google.accounts.oauth2.hasGrantedAllScopes(r,DRIVE_SCOPE)){p.reject(Error('Drive access was not approved. Nothing uploaded.'));return;}token=r.access_token;expires=Date.now()+Number(r.expires_in||3600)*1000-60000;p.resolve();},
-  error_callback:()=>{pending?.reject(Error('Google sign-in was closed.'));pending=null;}});
+  error_callback:error=>{pending?.reject(Error(error?.type==='popup_failed_to_open'?'Google sign-in could not open. Allow pop-ups or use Safari directly.':error?.type==='popup_closed'?'Google sign-in closed before approval returned to Relay. Nothing uploaded.':'Google sign-in did not return approval to Relay. Nothing uploaded.'));pending=null;}});
 }
-export function driveAuthorized(){return Boolean(token&&Date.now()<expires);}
+export function driveAuthorized(){return hosted()||Boolean(token&&Date.now()<expires);}
 export function disconnectDrive(){token='';expires=0;}
-export function authorizeDrive(){if(!client)return Promise.reject(Error('Google sign-in is loading. Try again shortly.'));if(pending)return Promise.reject(Error('Finish the open Google sign-in first.'));return new Promise((resolve,reject)=>{pending={resolve,reject};client.requestAccessToken({scope:DRIVE_SCOPE,prompt:'select_account'});});}
+export function authorizeDrive(){if(hosted())return Promise.resolve();if(!client)return Promise.reject(Error('Google sign-in is loading. Try again shortly.'));if(pending)return Promise.reject(Error('Finish the open Google sign-in first.'));return new Promise((resolve,reject)=>{pending={resolve,reject};client.requestAccessToken({scope:DRIVE_SCOPE,prompt:'select_account'});});}
 function canonical(value){if(Array.isArray(value))return value.map(canonical);if(value&&typeof value==='object')return Object.fromEntries(Object.keys(value).sort().map(k=>[k,canonical(value[k])]));return value;}
 export function syncPayload(state){const {cloudSync,exportedAt,recents,course,...data}=state;return canonical(data);}
 export async function payloadHash(state){const bytes=new TextEncoder().encode(JSON.stringify(syncPayload(state)));return [...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(b=>b.toString(16).padStart(2,'0')).join('');}
@@ -38,10 +42,11 @@ async function api(path,options={}){
  return response.json();
 }
 export const driveTransport={
- async account(){const data=await api('drive/v3/about?fields=user(emailAddress,permissionId)');if(!data.user?.permissionId||!data.user.emailAddress)throw Error('Could not verify the Google account.');return data.user;},
- async list(){let files=[],pageToken;do{const q=new URLSearchParams({spaces:'appDataFolder',q:"trashed = false and appProperties has { key='relaySync' and value='v1' }",fields:'nextPageToken,files(id,appProperties)',pageSize:'1000',...(pageToken?{pageToken}:{})});const data=await api('drive/v3/files?'+q);files.push(...(data.files||[]));pageToken=data.nextPageToken;}while(pageToken);return files;},
- read(id){return api('drive/v3/files/'+encodeURIComponent(id)+'?alt=media');},
+ async account(){if(hosted())return hostCall('account');const data=await api('drive/v3/about?fields=user(emailAddress,permissionId)');if(!data.user?.permissionId||!data.user.emailAddress)throw Error('Could not verify the Google account.');return data.user;},
+ async list(){if(hosted())return hostCall('list');let files=[],pageToken;do{const q=new URLSearchParams({spaces:'appDataFolder',q:"trashed = false and appProperties has { key='relaySync' and value='v1' }",fields:'nextPageToken,files(id,appProperties)',pageSize:'1000',...(pageToken?{pageToken}:{})});const data=await api('drive/v3/files?'+q);files.push(...(data.files||[]));pageToken=data.nextPageToken;}while(pageToken);return files;},
+ read(id){return hosted()?hostCall('read',{id}):api('drive/v3/files/'+encodeURIComponent(id)+'?alt=media');},
  async append(envelope,parent,hash){const boundary='relay_'+crypto.randomUUID(),metadata={name:'relay-revision-'+crypto.randomUUID()+'.json',parents:['appDataFolder'],mimeType:'application/json',appProperties:{relaySync:'v1',parent:parent||'root',hash}};
+  if(hosted())return hostCall('append',{envelope,parent,hash});
   const body=`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(envelope)}\r\n--${boundary}--`;
   return api('upload/drive/v3/files?uploadType=multipart&fields=id,appProperties',{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+boundary},body});
  }

@@ -1,5 +1,5 @@
 import {icon} from './icons.mjs';
-import {prepareDriveSignIn,authorizeDrive,driveAuthorized,disconnectDrive,syncWorkingCopy,payloadHash} from './drive-sync.mjs';
+import {prepareDriveSignIn,authorizeDrive,driveAuthorized,disconnectDrive,syncWorkingCopy,payloadHash,privateHostActive} from './drive-sync.mjs?v=20260918-private-host';
 import {applyRecipientUpdate} from './recipient-import.mjs';
 import {isFriend,recipientEmails,contactFilter} from './recipient-tools.mjs';
 import {normalizeContact} from './domain.mjs';
@@ -94,14 +94,16 @@ function render(){
  wing=['manifest','voyage','tides'].includes(page)?page:page==='contact'||page==='calling'?c?.wing||'voyage':page==='tide'?'tides':'helm';
  app.dataset.wing=wing;
  const views={emailhistory:renderEmailHistory,helm:renderHelm,manifest:renderManifest,voyage:renderVoyage,tides:renderTides,calendar:renderCalendar,day:()=>renderDay(id),goal:()=>renderFinance(state,goalYear,{e,MONEY,PRECISE,topbar,btn,section,compassChart}),settings:renderSettings,importreview:renderImportReview,offcourse:renderOffCourse,relays:renderRelayList,contact:()=>renderContact(c),calling:()=>renderCalling(c),tide:()=>renderTide(id),courselist:renderCourseList,ledger:renderLedger};
- main.innerHTML=`<div class="working-label">${icon(state.mode==='demo'?'info':'download')}${state.mode==='demo'?'Design build · demo data only':'Working copy · not writing to your live app'}</div>${(views[page]||renderHelm)()}`;
+ const copyStatus=state.mode==='demo'?'Design build · demo data only':!state.contacts.length?'No private copy loaded on this device':state.cloudSync?`Saved on this device · Drive last verified ${new Date(state.cloudSync.checkedAt).toLocaleString()} · sync manually`:'Saved on this device · not yet verified with private Drive';
+ const setup=!state.contacts.length?`<div class="page"><div class="panel"><h3>Load your private Relay copy</h3><p>This device has no contacts loaded. Zero statistics here do not describe your ministry records. Safari and the Home Screen app have separate storage.</p>${btn('route','Open private sync & backups','primary wide','data-route="#settings"')}</div></div>`:'';
+ main.innerHTML=`<div class="working-label">${icon(state.mode==='demo'?'info':'download')}${e(copyStatus)}</div>${setup}${(views[page]||renderHelm)()}`;
  if(page==='settings')main.insertAdjacentHTML('beforeend',renderDriveSettings());
  document.querySelector('.dock').innerHTML=['helm','manifest','voyage','tides'].map(w=>`<button data-action="route" data-route="#${w}" class="${w===wing?'active':''}" ${w===wing?'aria-current="page"':''}>${icon(w)}<span>${w[0].toUpperCase()+w.slice(1)}</span>${w==='tides'&&activeTides().filter(t=>tideGroup(t)==='Overdue').length?`<span class="nav-count">${activeTides().filter(t=>tideGroup(t)==='Overdue').length}</span>`:''}</button>`).join('');
  document.title=`Relay · ${page==='contact'&&c?c.pastor:page||'Helm'}`;
 }
 function renderDriveSettings(){
  prepareDriveSignIn().catch(()=>{});
- return `<div class="page">${section('Private device sync')}<div class="panel"><h3>Google Drive · complete working copy</h3><p class="small subtle">Contacts, history, reminders, meetings, calendar snapshots, email review and financial records. Sync is manual: sync before and after editing each device. Google Calendar and legacy Sheets are not changed.</p><p class="small">${driveAuthorized()?'Drive authorized for this session':'Not connected'}</p>${state.cloudSync?`<p class="tiny subtle">Last verified ${e(state.cloudSync.checkedAt)} · ${e(state.cloudSync.email)}</p>`:''}<p class="small" role="status">${e(driveMessage)}</p><div class="stack">${driveAuthorized()?`${btn('drive-sync','Sync now','primary wide',driveBusy?'disabled':'')}${btn('drive-load','Load cloud copy on this device','secondary wide',driveBusy?'disabled':'')}${btn('drive-disconnect','Disconnect private Drive','secondary wide',driveBusy?'disabled':'')}`:btn('drive-connect','Connect private Google Drive','primary wide',driveBusy?'disabled':'')}</div><p class="tiny subtle">Choose the same Google account on all devices. Every upload is a new revision; conflicting edits stop for review. Your old cloud revisions are retained and consume Drive storage. Keep exported backups. Close other Relay tabs before syncing.</p></div></div>`;
+ return `<div class="page">${section('Private device sync')}<div class="panel"><h3>Google Drive · complete working copy</h3><p class="small subtle">Contacts, history, reminders, meetings, calendar snapshots, email review and financial records. Sync is manual: sync before and after editing each device. Google Calendar and legacy Sheets are not changed.</p><p class="small">${privateHostActive()?'Private Google account host active':driveAuthorized()?'Drive authorized for this session':'Not connected'}</p>${state.cloudSync?`<p class="tiny subtle">Last verified ${e(state.cloudSync.checkedAt)} · ${e(state.cloudSync.email)}</p>`:''}<p class="small" role="status">${e(driveMessage)}</p><div class="stack">${driveAuthorized()?`${btn('drive-sync','Sync now','primary wide',driveBusy?'disabled':'')}${btn('drive-load','Load cloud copy on this device','secondary wide',driveBusy?'disabled':'')}${privateHostActive()?'':btn('drive-disconnect','Disconnect private Drive','secondary wide',driveBusy?'disabled':'')}`:btn('drive-connect','Connect private Google Drive','primary wide',driveBusy?'disabled':'')}</div><p class="tiny subtle">Choose the same Google account on all devices. Every upload is a new revision; conflicting edits stop for review. Your old cloud revisions are retained and consume Drive storage. Keep exported backups. Close other Relay tabs before syncing.</p></div></div>`;
 }
 function renderHelm(){
  const reach=helmStats(state);
@@ -197,7 +199,9 @@ async function action(a,el){
  const id=el.dataset.id,c=contact(id);
  switch(a){
   case 'drive-connect':
-   try{await authorizeDrive();driveMessage='Drive connected for this session. Nothing uploaded yet.';}catch(error){driveMessage=error.message;}render();break;
+   if(driveBusy)return;
+   driveBusy=true;driveMessage='Waiting for Google approval. Keep this Relay window open; nothing is uploaded by connecting.';render();
+   try{await authorizeDrive();driveMessage='Drive connected for this session. Nothing uploaded yet.';}catch(error){driveMessage=error.message;}finally{driveBusy=false;render();}break;
   case 'drive-disconnect':disconnectDrive();driveMessage='Disconnected. Local and cloud records are unchanged.';render();break;
   case 'drive-sync':case 'drive-load':{
    if(driveBusy)return;
