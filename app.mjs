@@ -24,6 +24,7 @@ let state=await openWorkingCopy(),wing='helm',directoryFilter='All',searchText='
 let startupSaveFailed=false;
 let sheetsReport=null,sheetsBusy=false,sheetsConnectionError='';
 let driveBusy=false,driveMessage='';
+let autoSyncTimer=null,autoSyncRunning=false,autoSyncQueued=false;
 recoverCoordinates(state.contacts);reconcileContactDesignations(state);try{await persist(state);}catch{startupSaveFailed=true;}
 const app=document.querySelector('#app'),main=document.querySelector('#main'),sheet=document.querySelector('#sheet');
 const e=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -49,7 +50,25 @@ function hero(name,subtitle){return `<header class="hero ${name}" ${name==='helm
 function greeting(){const h=new Date().getHours();return h<12?'Good morning':h<18?'Good afternoon':'Good evening';}
 function light(){const h=new Date().getHours();return h<7||h>=21?'night':h<12?'morning':h<17?'day':'evening';}
 function dailyVerse(){const n=Math.floor((Date.UTC(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()))/86400000);const [text,ref]=VERSES[n%VERSES.length];return `<div class="verse">“${e(text)}”<cite>${e(ref)}</cite></div>`;}
-async function save(message='Saved to this working copy'){try{await persist(state);if(message)toast(message);return true;}catch{toast('Could not save. Keep this page open and export a backup before reloading.');return false;}}
+function scheduleAutoSync(){
+ if(!privateHostActive()||!state.cloudSync)return;
+ clearTimeout(autoSyncTimer);autoSyncTimer=setTimeout(()=>autoSync(),12000);
+}
+async function autoSync(load=false){
+ if(!privateHostActive())return;
+ if(autoSyncRunning||driveBusy){autoSyncQueued=true;return;}
+ autoSyncRunning=true;driveMessage=load?'Loading the private cloud copy…':'Checking private Drive automatically…';render();
+ try{
+  const before=await payloadHash(state),snapshot=JSON.parse(exportData(state));
+  const result=await syncWorkingCopy(snapshot,{load,expectedEmail:state.emailHistory?.mailbox||state.cloudSync?.email,validate:parseImport,backup:saveSheetsBackup});
+  if(await payloadHash(state)!==before)throw Error('A local edit arrived during automatic sync. It remains saved here and will be checked again.');
+  result.next.recents=(state.recents||[]).filter(id=>result.next.contacts.some(c=>c.id===id));result.next.course=null;
+  await persist(result.next);state=result.next;
+  driveMessage=result.status==='loaded'?'Private cloud copy loaded automatically.':result.status==='saved'?'Changes saved to private Drive automatically.':'Private cloud copy is current.';
+ }catch(error){driveMessage=error.message;}
+ finally{autoSyncRunning=false;render();if(autoSyncQueued){autoSyncQueued=false;scheduleAutoSync();}}
+}
+async function save(message='Saved to this working copy'){try{await persist(state);scheduleAutoSync();if(message)toast(message);return true;}catch{toast('Could not save. Keep this page open and export a backup before reloading.');return false;}}
 let toastTimer;
 function toast(text,undo){clearTimeout(toastTimer);const el=document.querySelector('#toast');el.textContent=text;if(undo){const b=document.createElement('button');b.textContent='Undo';b.onclick=()=>{undo();el.classList.remove('show');};el.append(b);}el.classList.add('show');toastTimer=setTimeout(()=>el.classList.remove('show'),6500);}
 function go(hash){if(location.hash===hash)render();else location.hash=hash;}
@@ -103,7 +122,7 @@ function render(){
 }
 function renderDriveSettings(){
  prepareDriveSignIn().catch(()=>{});
- return `<div class="page">${section('Private device sync')}<div class="panel"><h3>Google Drive · complete working copy</h3><p class="small subtle">Contacts, history, reminders, meetings, calendar snapshots, email review and financial records. Sync is manual: sync before and after editing each device. Google Calendar and legacy Sheets are not changed.</p><p class="small">${privateHostActive()?'Private Google account host active':driveAuthorized()?'Drive authorized for this session':'Not connected'}</p>${state.cloudSync?`<p class="tiny subtle">Last verified ${e(state.cloudSync.checkedAt)} · ${e(state.cloudSync.email)}</p>`:''}<p class="small" role="status">${e(driveMessage)}</p><div class="stack">${driveAuthorized()?`${btn('drive-sync','Sync now','primary wide',driveBusy?'disabled':'')}${btn('drive-load','Load cloud copy on this device','secondary wide',driveBusy?'disabled':'')}${privateHostActive()?'':btn('drive-disconnect','Disconnect private Drive','secondary wide',driveBusy?'disabled':'')}`:btn('drive-connect','Connect private Google Drive','primary wide',driveBusy?'disabled':'')}</div><p class="tiny subtle">Choose the same Google account on all devices. Every upload is a new revision; conflicting edits stop for review. Your old cloud revisions are retained and consume Drive storage. Keep exported backups. Close other Relay tabs before syncing.</p></div></div>`;
+ return `<div class="page">${section('Private device sync')}<div class="panel"><h3>Google Drive · complete working copy</h3><p class="small subtle">Contacts, history, reminders, meetings, calendar snapshots, email review and financial records. Relay checks the private cloud whenever it opens and saves changes shortly after you stop editing. Google Calendar and legacy Sheets are not changed.</p><p class="small">${privateHostActive()?'Private Google account host active':driveAuthorized()?'Drive authorized for this session':'Not connected'}</p>${state.cloudSync?`<p class="tiny subtle">Last verified ${e(state.cloudSync.checkedAt)} · ${e(state.cloudSync.email)}</p>`:''}<p class="small" role="status">${e(driveMessage)}</p><div class="stack">${driveAuthorized()?`${btn('drive-sync','Sync now','primary wide',driveBusy?'disabled':'')}${btn('drive-load','Load cloud copy on this device','secondary wide',driveBusy?'disabled':'')}${privateHostActive()?'':btn('drive-disconnect','Disconnect private Drive','secondary wide',driveBusy?'disabled':'')}`:btn('drive-connect','Connect private Google Drive','primary wide',driveBusy?'disabled':'')}</div><p class="tiny subtle">“Sync now” is only a manual backup check. Choose the same Google account on all devices. Every upload is a new revision; conflicting edits stop for review. Your old cloud revisions are retained and consume Drive storage. Keep exported backups.</p></div></div>`;
 }
 function renderHelm(){
  const reach=helmStats(state);
@@ -356,6 +375,7 @@ window.addEventListener('offline',()=>toast('Offline · your working copy remain
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(state.course?.mode==='state'&&state.course.selectedDate!==iso()){state.course=null;save('');}render();}});
 if(state.course?.mode==='state'&&state.course.selectedDate!==iso()){state.course=null;save('');}
 render();
+if(privateHostActive())autoSync(!state.contacts.length);
 if(startupSaveFailed)toast('Browser storage is full. Your saved copy is intact; export a backup before editing.');
 const donorEmailReminders=missingDonorEmails(state.contacts);
 if(donorEmailReminders.length)openSheet('Add supporting donors’ emails',`<p class="small subtle">These supporting individuals still need email addresses for your email list. Tap a name to edit their details.</p><div class="stack">${donorEmailReminders.map(c=>btn('donor-email-edit',e(c.pastor||c.givingDonorLabel),'secondary wide donor-email-reminder',`data-id="${e(c.id)}" aria-label="Add email for ${e(c.pastor||c.givingDonorLabel)}"`)).join('')}</div><p class="hint">This reminder returns when you open the app until all four have email addresses.</p>${btn('close-sheet','Later','secondary wide')}`);
