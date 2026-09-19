@@ -9,7 +9,7 @@ import {MAILBOX,importEmailHistory,reconcileEmails,assignEmail,ignoreEmails} fro
 import {triageEmails} from './email-triage.mjs';
 import {CONTACT_TYPES,reconcileContactDesignations,directoryEligible,missingDonorEmails} from './contact-designations.mjs';
 import {validCoordinates,recoverCoordinates,locateChurch,locationChanged,clearLocation} from './geocoding.mjs';
-import {helmStats} from './helm-stats.mjs?v=20260918-private-calendar';
+import {helmStats} from './helm-stats.mjs?v=20260919-calendar-fallback';
 import {locationLabel,visitedStates,contactPhoto} from './contact-polish.mjs';
 import {financePlan,renderFinance} from './finance-plan.mjs';
 import {mergeGivingReports,supportEstimate,giftCategory} from './finance.mjs';
@@ -113,7 +113,7 @@ function render(){
  wing=['manifest','voyage','tides'].includes(page)?page:page==='contact'||page==='calling'?c?.wing||'voyage':page==='tide'?'tides':'helm';
  app.dataset.wing=wing;
  const views={emailhistory:renderEmailHistory,helm:renderHelm,manifest:renderManifest,voyage:renderVoyage,tides:renderTides,calendar:renderCalendar,day:()=>renderDay(id),goal:()=>renderFinance(state,goalYear,{e,MONEY,PRECISE,topbar,btn,section,compassChart}),settings:renderSettings,importreview:renderImportReview,offcourse:renderOffCourse,relays:renderRelayList,contact:()=>renderContact(c),calling:()=>renderCalling(c),tide:()=>renderTide(id),courselist:renderCourseList,ledger:renderLedger};
- const copyStatus=state.mode==='demo'?'Design build · demo data only':!state.contacts.length?'No private copy loaded on this device':state.cloudSync?`Saved on this device · Drive last verified ${new Date(state.cloudSync.checkedAt).toLocaleString()} · sync manually`:'Saved on this device · not yet verified with private Drive';
+ const copyStatus=state.mode==='demo'?'Design build · demo data only':!state.contacts.length?'No private copy loaded on this device':state.cloudSync?`Saved on this device · Drive last verified ${new Date(state.cloudSync.checkedAt).toLocaleString()} · automatic sync on`:'Saved on this device · not yet verified with private Drive';
  const setup=!state.contacts.length?`<div class="page"><div class="panel"><h3>Load your private Relay copy</h3><p>This device has no contacts loaded. Zero statistics here do not describe your ministry records. Safari and the Home Screen app have separate storage.</p>${btn('route','Open private sync & backups','primary wide','data-route="#settings"')}</div></div>`:'';
  main.innerHTML=`<div class="working-label">${icon(state.mode==='demo'?'info':'download')}${e(copyStatus)}</div>${setup}${(views[page]||renderHelm)()}`;
  if(page==='settings')main.insertAdjacentHTML('beforeend',renderDriveSettings());

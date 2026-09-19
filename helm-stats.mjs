@@ -11,7 +11,10 @@ export function helmStats(state,now=new Date()){
  for(const l of visits)meetings.set(l.legacyVisitId||l.meetingId||`${l.contactId}:${l.date}`,l);
  // An old calendar date alone is not proof of attendance.
  for(const m of state.meetings||[])if(past(m)&&(m.completed===true||m.status==='completed'))meetings.set(m.id,m);
- const calendar=(state.calendarMeetings||CALENDAR_MEETINGS).filter(m=>!m.excludeFromStats);
+ // Older private copies may contain an empty calendarMeetings array. That
+ // means the snapshot was never embedded in that copy, not that the user has
+ // zero ministry meetings. Fall back to the bundled reviewed snapshot.
+ const calendar=(Array.isArray(state.calendarMeetings)&&state.calendarMeetings.length?state.calendarMeetings:CALENDAR_MEETINGS).filter(m=>!m.excludeFromStats);
  if(!state.useLegacyMeetingStats){meetings.clear();for(const m of calendar)if(m.end<=today)meetings.set(m.id,m);}
  const states=new Set();
  for(const m of meetings.values()){
