@@ -9,7 +9,7 @@ import {MAILBOX,importEmailHistory,reconcileEmails,assignEmail,ignoreEmails} fro
 import {triageEmails} from './email-triage.mjs';
 import {CONTACT_TYPES,reconcileContactDesignations,directoryEligible,missingDonorEmails} from './contact-designations.mjs';
 import {validCoordinates,recoverCoordinates,locateChurch,locationChanged,clearLocation} from './geocoding.mjs';
-import {helmStats} from './helm-stats.mjs';
+import {helmStats} from './helm-stats.mjs?v=20260918-private-calendar';
 import {locationLabel,visitedStates,contactPhoto} from './contact-polish.mjs';
 import {financePlan,renderFinance} from './finance-plan.mjs';
 import {mergeGivingReports,supportEstimate,giftCategory} from './finance.mjs';
