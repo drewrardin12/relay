@@ -1,5 +1,5 @@
-const CACHE='relay-shell-v9-clean-settings';
-const SHELL=['./','index.html','styles.css','polish.css','app.mjs','domain.mjs','icons.mjs','seed.mjs','store.mjs','tide-reconciliation.mjs','contact-polish.mjs','finance.mjs','finance-plan.mjs','manifest.webmanifest','logo.png','logo-transparent.svg','helm.webp','manifest.webp','voyage.webp','tides.webp','contours.svg','parchment.svg'];
+const CACHE='relay-shell-v13-calendar-reconcile';
+const SHELL=['./','index.html','styles.css','polish.css','app.mjs','domain.mjs','icons.mjs','seed.mjs','store.mjs','tide-reconciliation.mjs','contact-polish.mjs','meeting-debrief.mjs','device-activity.mjs','data-health.mjs','calendar-sync.mjs','finance.mjs','finance-plan.mjs','manifest.webmanifest','logo.png','logo-transparent.svg','helm.webp','manifest.webp','voyage.webp','tides.webp','contours.svg','parchment.svg'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL))));
 SHELL.push('relay-icon-180.png','relay-icon-192.png','relay-icon-512.png');
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('relay-shell-')&&key!==CACHE).map(key=>caches.delete(key))))));

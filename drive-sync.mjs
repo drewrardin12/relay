@@ -1,5 +1,5 @@
 import {CLIENT_ID,prepareSheetsSignIn} from './sheets-connection.mjs';
-export const DRIVE_SCOPE='https://www.googleapis.com/auth/drive.appdata';
+export const DRIVE_SCOPE='https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.readonly';
 let client,token='',expires=0,pending;
 const SESSION_KEY='relay-private-drive-session-v1';
 try{
@@ -57,6 +57,16 @@ export const driveTransport={
   return api('upload/drive/v3/files?uploadType=multipart&fields=id,appProperties',{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+boundary},body});
  }
 };
+export async function readPrivateEmailHistory(){
+ if(hosted())return hostCall('emailHistory');
+ const q=new URLSearchParams({spaces:'drive',q:"name = 'relay-email-history.json' and trashed = false",fields:'files(id,name,modifiedTime,description)',orderBy:'modifiedTime desc',pageSize:'10'});
+ const files=(await api('drive/v3/files?'+q)).files||[];
+ const file=files.find(f=>String(f.description||'').includes('Private Relay email metadata'))||files[0];
+ if(!file)return null;
+ const bundle=await api('drive/v3/files/'+encodeURIComponent(file.id)+'?alt=media');
+ if(bundle?.kind&&bundle.kind!=='relay-email-history')throw Error('The private email file has an unfamiliar format.');
+ return bundle;
+}
 async function validatedCloud(transport,head){if(!head)return null;const envelope=await transport.read(head.id);if(envelope.kind!=='relay-private-sync'||envelope.version!==1||!envelope.data)throw Error('Unfamiliar cloud copy. Sync stopped.');const hash=await payloadHash(envelope.data);if(hash!==head.appProperties?.hash||hash!==envelope.hash)throw Error('Cloud copy verification failed. Nothing restored.');return envelope;}
 export async function syncWorkingCopy(state,{transport=driveTransport,backup,validate,load=false,expectedEmail}={}){
  if(typeof backup!=='function'||typeof validate!=='function')throw Error('Sync requires a local backup and backup validator.');

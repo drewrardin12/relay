@@ -2,7 +2,7 @@ import {ATTEMPTS,iso} from './domain.mjs';
 import {giftCategory} from './finance.mjs';
 import {CALENDAR_MEETINGS} from './calendar-meetings.mjs';
 const US_STATES=new Set('AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY'.split(' '));
-export function helmStats(state,now=new Date()){
+export function helmStats(state,now=new Date(),bundledCalendar=CALENDAR_MEETINGS){
  const today=iso(now),year=today.slice(0,4),contacts=new Map(state.contacts.map(c=>[c.id,c]));
  const past=l=>/^\d{4}-\d{2}-\d{2}$/.test(l.date||'')&&l.date<=today;
  const attempted=new Set(state.logs.filter(l=>past(l)&&ATTEMPTS.has(l.type)&&contacts.has(l.contactId)).map(l=>l.contactId));
@@ -14,8 +14,12 @@ export function helmStats(state,now=new Date()){
  // Older private copies may contain an empty calendarMeetings array. That
  // means the snapshot was never embedded in that copy, not that the user has
  // zero ministry meetings. Fall back to the bundled reviewed snapshot.
- const calendar=(Array.isArray(state.calendarMeetings)&&state.calendarMeetings.length?state.calendarMeetings:CALENDAR_MEETINGS).filter(m=>!m.excludeFromStats);
- if(!state.useLegacyMeetingStats){meetings.clear();for(const m of calendar)if(m.end<=today)meetings.set(m.id,m);}
+ const calendarSource=Array.isArray(state.calendarMeetings)&&state.calendarMeetings.length
+  ?state.calendarMeetings
+  :bundledCalendar.length?bundledCalendar
+  :(state.meetings||[]);
+ const calendar=calendarSource.filter(m=>!m.excludeFromStats);
+ if(!state.useLegacyMeetingStats){meetings.clear();for(const m of calendar)if((m.end||m.date)<=today)meetings.set(m.id,m);}
  const states=new Set();
  for(const m of meetings.values()){
   const region=String(contacts.get(m.contactId)?.state||m.state||'').trim().toUpperCase();

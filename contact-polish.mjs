@@ -19,3 +19,11 @@ export async function contactPhoto(file){
  canvas.getContext('2d').drawImage(bitmap,(bitmap.width-side)/2,(bitmap.height-side)/2,side,side,0,0,320,320);
  bitmap.close();return canvas.toDataURL('image/jpeg',.82);
 }
+export async function journalPhoto(file){
+ if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('Choose a JPG, PNG or WebP photo.');
+ if(file.size>15*1024*1024)throw Error('Choose a photo smaller than 15 MB.');
+ const bitmap=await createImageBitmap(file),scale=Math.min(1,1280/Math.max(bitmap.width,bitmap.height)),canvas=document.createElement('canvas');
+ canvas.width=Math.round(bitmap.width*scale);canvas.height=Math.round(bitmap.height*scale);
+ canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();
+ return canvas.toDataURL('image/jpeg',.78);
+}

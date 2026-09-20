@@ -7,9 +7,9 @@ import {financeDefaults,financePlan} from './finance-plan.mjs';
 import {giftCategory} from './finance.mjs';
 import {readLocalCopy,writeLocalCopy} from './local-database.mjs';
 import {recoverCoordinates} from './geocoding.mjs';
-import {brianPetrickRemovals,correctBrianPetrick,reviewedPastorRemovals,correctReviewedPastors,correctVoyageOnlyChurches} from './contact-corrections.mjs?v=20260918-kansas';
+import {brianPetrickRemovals,correctBrianPetrick,reviewedPastorRemovals,correctReviewedPastors,correctVoyageOnlyChurches} from './contact-corrections.mjs?v=20260921-family-recipients';
 import {normalizeContact,fields,iso,phones} from './domain.mjs';
-import {exactCrossWingDuplicates,consolidateExactDuplicates} from './contact-corrections.mjs?v=20260918-kansas';
+import {exactCrossWingDuplicates,consolidateExactDuplicates} from './contact-corrections.mjs?v=20260921-family-recipients';
 const KEY='relay_redesign_working_copy_v1';
 function optionalBackup(key,text){
  // Large automatic copies compete with the active roster for browser quota.
