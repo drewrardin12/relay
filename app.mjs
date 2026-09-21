@@ -1,5 +1,5 @@
 import {icon} from './icons.mjs';
-import {prepareDriveSignIn,authorizeDrive,driveAuthorized,disconnectDrive,syncWorkingCopy,payloadHash,privateHostActive,readPrivateEmailHistory} from './drive-sync.mjs?v=20260921-gmail-auto';
+import {prepareDriveSignIn,authorizeDrive,driveAuthorized,disconnectDrive,syncWorkingCopy,payloadHash,privateHostActive,readPrivateEmailHistory} from './drive-sync.mjs?v=20260921-gmail-auto-2';
 import {applyRecipientUpdate} from './recipient-import.mjs';
 import {isFriend,recipientEmails,contactFilter} from './recipient-tools.mjs';
 import {normalizeContact} from './domain.mjs';

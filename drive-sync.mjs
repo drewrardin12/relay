@@ -1,5 +1,6 @@
 import {CLIENT_ID,prepareSheetsSignIn} from './sheets-connection.mjs';
-export const DRIVE_SCOPE='https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.readonly';
+export const DRIVE_SCOPES=['https://www.googleapis.com/auth/drive.appdata','https://www.googleapis.com/auth/drive.readonly'];
+export const DRIVE_SCOPE=DRIVE_SCOPES.join(' ');
 let client,token='',expires=0,pending;
 const SESSION_KEY='relay-private-drive-session-v1';
 try{
@@ -14,7 +15,7 @@ export async function prepareDriveSignIn(){
  if(hosted())return;
  await prepareSheetsSignIn();
  if(!client)client=window.google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:DRIVE_SCOPE,include_granted_scopes:false,
-  callback:r=>{const p=pending;pending=null;if(!p)return;if(r.error||!r.access_token||!window.google.accounts.oauth2.hasGrantedAllScopes(r,DRIVE_SCOPE)){p.reject(Error('Drive access was not approved. Nothing uploaded.'));return;}token=r.access_token;expires=Date.now()+Number(r.expires_in||3600)*1000-60000;if(typeof sessionStorage!=='undefined')sessionStorage.setItem(SESSION_KEY,JSON.stringify({token,expires}));p.resolve();},
+  callback:r=>{const p=pending;pending=null;if(!p)return;if(r.error||!r.access_token||!window.google.accounts.oauth2.hasGrantedAllScopes(r,...DRIVE_SCOPES)){p.reject(Error('Drive access was not approved. Nothing uploaded.'));return;}token=r.access_token;expires=Date.now()+Number(r.expires_in||3600)*1000-60000;if(typeof sessionStorage!=='undefined')sessionStorage.setItem(SESSION_KEY,JSON.stringify({token,expires}));p.resolve();},
   error_callback:error=>{pending?.reject(Error(error?.type==='popup_failed_to_open'?'Google sign-in could not open. Allow pop-ups or use Safari directly.':error?.type==='popup_closed'?'Google sign-in closed before approval returned to Relay. Nothing uploaded.':'Google sign-in did not return approval to Relay. Nothing uploaded.'));pending=null;}});
 }
 export function driveAuthorized(){return hosted()||Boolean(token&&Date.now()<expires);}
