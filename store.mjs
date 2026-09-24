@@ -11,6 +11,18 @@ import {brianPetrickRemovals,correctBrianPetrick,reviewedPastorRemovals,correctR
 import {normalizeContact,fields,iso,phones} from './domain.mjs';
 import {exactCrossWingDuplicates,consolidateExactDuplicates} from './contact-corrections.mjs?v=20260921-family-recipients';
 const KEY='relay_redesign_working_copy_v1';
+const REVIEWED_LINK_REPAIRS=new Map([
+ ['mfst-allen-copeland','central-baptist-church-amarillo-tx'],['sandusky-oh','mfst-david-oh-young'],['grace-baptist-church-attica-in-in','mfst-xgqcq180zj9mpmwnvus'],
+ ['xkvzek50d6qmpo8rngn','mfst-icxhy6mijf8mpo9fhgz'],['true-light-baptist-church-los-lunas-nm','mfst-idjo54kbpafmpmug38k'],['naschitti-baptist-church-sheep-springs-nm','mfst-db1rmgvvmnmsoto576'],
+ ['pagosa-baptist-church-pagosa-springs-co','mfst-p6r6oxgfkyamtirsmxc'],['mfst-pb2kz87r6tsmppmfmen','mfst-david-bragg'],['mfst-8q2189fy5w7mppo72k1','mfst-david-bragg'],
+ ['mfst-879x0gsacqmppogza0','mfst-dan-woodward'],['mfst-hyhosxkjo3mppoox9h','mfst-phil-cavanaugh'],['mfst-f69nz42o6jvmppov2l4','mfst-jack-barber'],
+ ['mfst-z6m54go7dngmppphxrw','mfst-josh-calabrese'],['mfst-jics1r8zzrmppppuh3','mfst-danny-dodson'],['m9','mfst-caleb-kinney']
+]);
+function repairReviewedLinks(state){
+ const current=new Set((state.contacts||[]).map(c=>c.id));
+ for(const key of ['logs','meetings','events','tides','gifts'])for(const row of state[key]||[]){const next=REVIEWED_LINK_REPAIRS.get(row.contactId);if(next&&current.has(next))row.contactId=next;const manifest=REVIEWED_LINK_REPAIRS.get(row.manifestId);if(manifest&&current.has(manifest))row.manifestId=manifest;}
+ if(state.calendarReview)for(const row of state.calendarReview.visits||[]){const next=REVIEWED_LINK_REPAIRS.get(row.contactId);if(next&&current.has(next))row.contactId=next;const manifest=REVIEWED_LINK_REPAIRS.get(row.manifestId);if(manifest&&current.has(manifest))row.manifestId=manifest;}
+}
 function optionalBackup(key,text){
  // Large automatic copies compete with the active roster for browser quota.
  // Keep the main saved copy usable; users can export full backups to disk.
@@ -27,7 +39,7 @@ export async function loadWorkingCopy(){
  // Keep legacy localStorage and its backups untouched after verification.
  return verified;
 }
-export function persist(state){if(typeof indexedDB!=='undefined')return writeLocalCopy(state);localStorage.setItem(KEY,JSON.stringify(state));}
+export function persist(state){repairReviewedLinks(state);if(typeof indexedDB!=='undefined')return writeLocalCopy(state);localStorage.setItem(KEY,JSON.stringify(state));}
 export function exportData(state){const defaults=financeDefaults();return JSON.stringify({...state,calendarMeetings:state.calendarMeetings||CALENDAR_MEETINGS,calendarVacations:state.calendarVacations||CALENDAR_VACATIONS,familyDates:state.familyDates||FAMILY_DATES,openCalendar:state.openCalendar||OPEN_CALENDAR,financeSchedule:state.financeSchedule||defaults.schedule,financeAllowances:state.financeAllowances||defaults.allowances,financePlan:financePlan(state).settings,gifts:state.gifts.map(g=>({...g,categoryOverride:g.categoryOverride||giftCategory(g)})),exportedAt:new Date().toISOString()},null,2);}
 export function parseImport(text){const s=JSON.parse(text);if(s.version!==1||!['contacts','logs','tides','meetings','events','gifts'].every(k=>Array.isArray(s[k])))throw new Error('Choose a Relay redesign backup. Your current app data can be read separately through its connection.');s.settings={yearlyGoal:70000,showNoNumbers:false,...s.settings};s.mode='working-copy';return s;}
 export function jsonp(endpoint,secret,action){return new Promise((resolve,reject)=>{
