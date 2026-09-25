@@ -70,7 +70,7 @@ export function courseContacts(contacts,course,logs,showNoNumbers=false){
     .filter(c=>course.mode==='state'?c.state===course.state:anchor&&haversine(anchor,c)<=Number(course.radius))
     .filter(c=>!course.result||lastLog(c,logs)?.result===course.result)
     .filter(c=>!course.type||lastLog(c,logs)?.type===course.type)
-    .sort((a,b)=>(a.pastor||a.church).localeCompare(b.pastor||b.church));
+    .sort((a,b)=>course.mode==='nearby'&&anchor?haversine(anchor,a)-haversine(anchor,b)||(a.pastor||a.church).localeCompare(b.pastor||b.church):(a.pastor||a.church).localeCompare(b.pastor||b.church));
 }
 const PERIODS={weekly:52,'bi-weekly':26,monthly:12,'bi-monthly':6,quarterly:4,'bi-annual':2,annually:1,annual:1};
 export function changedSupportPeriods(contact,amount,cadence,effective){

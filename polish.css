@@ -67,6 +67,8 @@
 .record>.micro-toolbar{gap:10px;margin:23px 0 22px;justify-content:flex-start;flex-wrap:wrap}
 .record>.micro-toolbar .secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;min-height:43px}
 .record>.micro-toolbar .icon{width:18px;height:18px}
+.record>.micro-toolbar .favorite-toggle.active{color:var(--gold);border-color:var(--gold);background:color-mix(in srgb,var(--surface) 76%,var(--gold))}
+.record>.micro-toolbar .favorite-toggle.active .icon{fill:currentColor}
 /* Keep native form-wide input rules from inflating result radios. */
 .form .outcome{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:center;position:relative;min-height:78px;padding:15px 30px 15px 13px;font-size:11px;line-height:1.45;letter-spacing:0;font-weight:500;cursor:pointer}
 .form .outcome .icon{width:20px;height:20px;color:var(--soft)}
