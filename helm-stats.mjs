@@ -1,7 +1,7 @@
 import {ATTEMPTS,iso} from './domain.mjs';
 import {giftCategory} from './finance.mjs';
 import {CALENDAR_MEETINGS} from './calendar-meetings.mjs';
-const US_STATES=new Set('AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY'.split(' '));
+import {visitedStates} from './contact-polish.mjs';
 export function helmStats(state,now=new Date(),bundledCalendar=CALENDAR_MEETINGS){
  const today=iso(now),year=today.slice(0,4),contacts=new Map(state.contacts.map(c=>[c.id,c]));
  const past=l=>/^\d{4}-\d{2}-\d{2}$/.test(l.date||'')&&l.date<=today;
@@ -20,10 +20,8 @@ export function helmStats(state,now=new Date(),bundledCalendar=CALENDAR_MEETINGS
   :(state.meetings||[]);
  const calendar=calendarSource.filter(m=>!m.excludeFromStats);
  if(!state.useLegacyMeetingStats){meetings.clear();for(const m of calendar)if((m.end||m.date)<=today)meetings.set(m.id,m);}
- const states=new Set();
+ const states=visitedStates(state,now,bundledCalendar);
  for(const m of meetings.values()){
-  const region=String(contacts.get(m.contactId)?.state||m.state||'').trim().toUpperCase();
-  if(US_STATES.has(region))states.add(region);
   if(contacts.has(m.contactId))attempted.add(m.contactId);
  }
  const churchKey=c=>String([c.church,String(c.city||'').split(',')[0],c.state].join('|')).toLowerCase().replace(/[^a-z0-9|]/g,'').replace('prarie','prairie');

@@ -4,11 +4,22 @@ export function locationLabel(c){
  while(region&&parts.at(-1)?.toLowerCase()===region.toLowerCase())parts.pop();
  return [...parts,region].filter(Boolean).join(', ');
 }
-export function visitedStates(state){
+import {CALENDAR_MEETINGS} from './calendar-meetings.mjs';
+const US_STATES=new Set('AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY'.split(' '));
+export function visitedStates(state,now=new Date(),bundledCalendar=CALENDAR_MEETINGS){
  const found=new Set();
- for(const log of state.logs||[]){if(log.type!=='visit'||log.date>new Date().toISOString().slice(0,10))continue;const c=state.contacts.find(c=>c.id===log.contactId);if(c?.state)found.add(c.state);}
- // Calendar history is scheduled evidence, not verified attendance. Manual corrections win.
- for(const [region,visited] of Object.entries(state.settings.visitedStates||{})){if(visited)found.add(region);else found.delete(region);}
+ const today=now.toISOString().slice(0,10),contacts=new Map((state.contacts||[]).map(c=>[c.id,c]));
+ const add=region=>{const normalized=String(region||'').trim().toUpperCase();if(US_STATES.has(normalized))found.add(normalized);};
+ // A recorded visit is direct attendance evidence.
+ for(const log of state.logs||[]){if(log.type!=='visit'||String(log.date||'')>today)continue;add(contacts.get(log.contactId)?.state);}
+ // The reviewed ministry-calendar snapshot is also attendance evidence once a
+ // meeting has ended. Ignore ordinary calendar items and reviewed exclusions.
+ const calendarSource=Array.isArray(state.calendarMeetings)&&state.calendarMeetings.length
+  ?state.calendarMeetings
+  :(bundledCalendar?.length?bundledCalendar:(state.meetings||[]));
+ for(const meeting of calendarSource||[]){if(meeting.excludeFromStats||(meeting.end||meeting.date)>today)continue;add(contacts.get(meeting.contactId)?.state||meeting.state);}
+ // Explicit corrections always win over imported evidence.
+ for(const [region,visited] of Object.entries(state.settings?.visitedStates||{})){const normalized=String(region).toUpperCase();if(!US_STATES.has(normalized))continue;if(visited)found.add(normalized);else found.delete(normalized);}
  return found;
 }
 export async function contactPhoto(file){
