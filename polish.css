@@ -9,7 +9,7 @@
 .anchor-results strong{font-size:13px;color:var(--text)}
 .anchor-results span,.anchor-results small{font-size:11px;color:var(--muted)}
 .calendar-meeting-details{text-align:left}
-.calendar-meeting-details{background:#dacdaf url('parchment.svg');color:#202c34;border:1px solid #ddcdad;border-radius:18px;padding:22px}
+.calendar-meeting-details{background:#dacdaf url('assets/parchment.svg');color:#202c34;border:1px solid #ddcdad;border-radius:18px;padding:22px}
 .calendar-meeting-details :is(.gold,.icon){color:#776039}
 .calendar-meeting-details .subtle{color:#665d4d}
 .calendar-meeting-details .divider{background:#7d6b4c4f}
@@ -52,6 +52,14 @@
 .reach-pair strong{font:400 clamp(32px,8vw,44px)/1 var(--serif);color:var(--text);font-variant-numeric:tabular-nums}
 .reach-pair>div:first-child strong{color:var(--reach-accent)}
 .reach-pair span{font-size:11px;color:var(--muted)}
+.reach-triplet{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));position:relative}
+.reach-triplet>div{display:flex;flex-direction:column;gap:7px;min-width:0;padding:0 16px}
+.reach-triplet>div:first-child{padding-left:0}
+.reach-triplet>div:last-child{padding-right:0}
+.reach-triplet>div+div{border-left:1px solid var(--line)}
+.reach-triplet strong{font:400 clamp(29px,7vw,42px)/1 var(--serif);color:var(--text);font-variant-numeric:tabular-nums}
+.reach-triplet>div:first-child strong{color:var(--reach-accent)}
+.reach-triplet span{font-size:10px;line-height:1.3;color:var(--muted)}
 .reach-meter{height:3px;border-radius:3px;overflow:hidden;background:#ffffff08;margin-top:20px}
 .reach-meter i{display:block;height:100%;background:var(--reach-accent);border-radius:3px;opacity:.65}
 .reach-footnote{margin:14px 2px 0;line-height:1.6}
@@ -84,10 +92,10 @@
 .brand-name{line-height:1.05;margin-bottom:4px}
 .brand-sub{line-height:1;margin-bottom:0}
 .hero .topbar>.icon-btn .icon{width:21px;height:21px;stroke-width:1.7}
-.hero.helm{background-position:100% center;--hero:url('helm.webp')}
-.hero.manifest{--hero:url('manifest.webp')}
-.hero.voyage{--hero:url('voyage.webp')}
-.hero.tides{--hero:url('tides.webp')}
+.hero.helm{background-position:100% center;--hero:url('assets/helm.webp')}
+.hero.manifest{--hero:url('assets/manifest.webp')}
+.hero.voyage{--hero:url('assets/voyage.webp')}
+.hero.tides{--hero:url('assets/tides.webp')}
 .identity h1{font:400 42px/1.08 var(--serif);margin:13px 0 12px}
 .identity-actions{margin-top:0;margin-bottom:18px}
 .command .number,.command .mini-count{color:var(--text)}
