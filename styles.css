@@ -4,3 +4,4 @@
 /* Prevent automatic zoom when iOS focuses a form control. */
 @supports (-webkit-touch-callout:none){input,select,textarea{font-size:16px!important}}
 .brand-logo{width:37px;height:43px;flex:0 0 auto;color:#efb337;display:block;overflow:visible}
+.polarsteps-embed{margin:15px 0 18px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#07142170}.polarsteps-embed iframe{display:block;width:100%;height:430px;border:0;background:var(--surface2)}.polarsteps-embed a{display:block;padding:12px;text-align:center;color:var(--gold);font-size:10px;border-top:1px solid var(--line)}.visit-history{display:flex;flex-direction:column;gap:12px}.visit-card{margin:0}.visit-card strong{color:var(--gold)}.visit-card p{white-space:pre-wrap}.visit-card .journal-photo{margin-top:12px}

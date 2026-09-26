@@ -1,6 +1,10 @@
 const day=value=>String(value||'').slice(0,10);
 const choice=value=>['yes','no'].includes(value)?value:'unknown';
 const count=value=>value===''||value===null||value===undefined?null:Math.max(0,Math.trunc(Number(value)||0));
+export function journalMeetings(state){
+ const rows=Array.isArray(state?.calendarMeetings)&&state.calendarMeetings.length?state.calendarMeetings:(state?.meetings||[]);
+ return rows.filter(meeting=>!meeting.excludeFromStats);
+}
 
 export function meetingEnd(meeting){return day(meeting?.end||meeting?.date);}
 
@@ -10,14 +14,14 @@ export function debriefComplete(meeting){
 
 export function pendingMeetingDebriefs(state,today=new Date().toISOString().slice(0,10)){
  const enabled=day(state?.settings?.meetingDebriefEnabledAt||today);
- return (state?.meetings||[]).filter(meeting=>{
+ return journalMeetings(state).filter(meeting=>{
   const ended=meetingEnd(meeting),snoozed=day(meeting?.debrief?.snoozedUntil);
   return ended&&ended>=enabled&&ended<today&&!debriefComplete(meeting)&&(!snoozed||snoozed<=today);
  }).sort((a,b)=>meetingEnd(a).localeCompare(meetingEnd(b)));
 }
 
 export function pastMeetingDebriefs(state,today=new Date().toISOString().slice(0,10)){
- return (state?.meetings||[]).filter(meeting=>meetingEnd(meeting)&&meetingEnd(meeting)<today&&!debriefComplete(meeting)).sort((a,b)=>meetingEnd(b).localeCompare(meetingEnd(a)));
+ return journalMeetings(state).filter(meeting=>meetingEnd(meeting)&&meetingEnd(meeting)<today&&!debriefComplete(meeting)).sort((a,b)=>meetingEnd(b).localeCompare(meetingEnd(a)));
 }
 
 export function snoozeMeetingDebrief(meeting,today=new Date().toISOString().slice(0,10)){
@@ -53,10 +57,11 @@ export function applyDebriefToContact(contact,debrief){
 }
 
 export function polarstepsCatchup(state,today=new Date().toISOString().slice(0,10)){
- return (state?.meetings||[]).filter(meeting=>meetingEnd(meeting)&&meetingEnd(meeting)<today&&meeting?.debrief?.completedAt&&!meeting.debrief.polarstepsUpdated&&!['cancelled','postponed'].includes(meeting.debrief.status)).sort((a,b)=>meetingEnd(a).localeCompare(meetingEnd(b)));
+ const since=day(state?.settings?.polarstepsCatchupFrom||'2026-05-21');
+ return journalMeetings(state).filter(meeting=>meetingEnd(meeting)&&meetingEnd(meeting)>since&&meetingEnd(meeting)<today&&!meeting?.debrief?.polarstepsUpdated&&!['cancelled','postponed'].includes(meeting?.debrief?.status)).sort((a,b)=>meetingEnd(a).localeCompare(meetingEnd(b)));
 }
 
 export function ministryJournalStats(state){
- const debriefs=(state?.meetings||[]).map(meeting=>meeting.debrief).filter(d=>d?.completedAt&&d.status==='completed');
+ const debriefs=journalMeetings(state).map(meeting=>meeting.debrief).filter(d=>d?.completedAt&&d.status==='completed');
  return {visits:debriefs.length,sermons:debriefs.reduce((sum,d)=>sum+(d.sermons?.length||0),0),bibles:debriefs.reduce((sum,d)=>sum+(d.biblesPassed||0),0),salvations:debriefs.reduce((sum,d)=>sum+(d.salvations||0),0)};
 }
