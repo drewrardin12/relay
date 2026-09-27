@@ -10,7 +10,7 @@ import {recoverCoordinates} from './geocoding.mjs';
 import {brianPetrickRemovals,correctBrianPetrick,reviewedPastorRemovals,correctReviewedPastors,correctVoyageOnlyChurches} from './contact-corrections.mjs?v=20260926-polarsteps-audit';
 import {normalizeContact,fields,iso,phones} from './domain.mjs';
 import {exactCrossWingDuplicates,consolidateExactDuplicates} from './contact-corrections.mjs?v=20260926-polarsteps-audit';
-import {applyPolarstepsHistory2024} from './polarsteps-history.mjs?v=20260926';
+import {applyPolarstepsHistory2024,applyPolarstepsHistory2025} from './polarsteps-history.mjs?v=20260926-2025';
 const KEY='relay_redesign_working_copy_v1';
 const REVIEWED_LINK_REPAIRS=new Map([
  ['mfst-allen-copeland','central-baptist-church-amarillo-tx'],['sandusky-oh','mfst-david-oh-young'],['grace-baptist-church-attica-in-in','mfst-xgqcq180zj9mpmwnvus'],
@@ -49,6 +49,7 @@ export function persist(state){
  correctBrianPetrick(state);
  correctReviewedPastors(state);
  applyPolarstepsHistory2024(state);
+ applyPolarstepsHistory2025(state);
  if(exactCrossWingDuplicates(state).length&&!localStorage.getItem(KEY+'_before_exact_duplicate_cleanup'))optionalBackup(KEY+'_before_exact_duplicate_cleanup',JSON.stringify(state));
  consolidateExactDuplicates(state);
  recoverCoordinates(state.contacts);
