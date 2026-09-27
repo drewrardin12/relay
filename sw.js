@@ -1,4 +1,4 @@
-const CACHE='relay-shell-v31-clean-last-stop-map';
+const CACHE='relay-shell-v32-polarsteps-stop-audit';
 const SHELL=['./','index.html','styles.css','polish.css','src/app.mjs','src/us-map.mjs','src/domain.mjs','src/icons.mjs','src/seed.mjs','src/store.mjs','src/polarsteps-journal.mjs','src/tide-reconciliation.mjs','src/contact-polish.mjs','src/meeting-debrief.mjs','src/device-activity.mjs','src/data-health.mjs','src/calendar-sync.mjs','src/finance.mjs','src/finance-plan.mjs','manifest.webmanifest','assets/logo.png','assets/logo-transparent.svg','assets/helm.webp','assets/manifest.webp','assets/voyage.webp','assets/tides.webp','assets/contours.svg','assets/parchment.svg'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));
 SHELL.push('assets/relay-icon-180.png','assets/relay-icon-192.png','assets/relay-icon-512.png');
