@@ -70,3 +70,9 @@ export function ministryJournalStats(state){
  const debriefs=journalMeetings(state).map(meeting=>meeting.debrief).filter(d=>d?.completedAt&&d.status==='completed');
  return {visits:debriefs.length,sermons:debriefs.reduce((sum,d)=>sum+(d.sermons?.length||0),0),bibles:debriefs.reduce((sum,d)=>sum+(d.biblesPassed||0),0),salvations:debriefs.reduce((sum,d)=>sum+(d.salvations||0),0)};
 }
+
+export function latestJourneyMeeting(state,today=new Date().toISOString().slice(0,10),eligible=()=>true){
+ return journalMeetings(state)
+  .filter(meeting=>meetingEnd(meeting)<today&&!['cancelled','postponed'].includes(meeting?.debrief?.status)&&eligible(meeting))
+  .sort((a,b)=>meetingEnd(b).localeCompare(meetingEnd(a)))[0]||null;
+}
