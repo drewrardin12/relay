@@ -162,6 +162,9 @@ export function correctReviewedPastors(state){
  state.settings||={};
  state.settings.polarstepsUrl||='https://www.polarsteps.com/Rardins/23525524-rardin-travels-2026?s=ab0163a7-54d4-4e7b-a17e-c18e84525cd7&referral=true';
  state.settings.meetingDebriefEnabledAt||='2026-09-20';
+ if(Array.isArray(state.calendarMeetings)&&state.contacts.some(c=>c.id==='mfst-danny-dodson')&&!state.calendarMeetings.some(m=>m.id==='polarsteps-central-baptist-center-tx-20260303')){
+  state.calendarMeetings.push({id:'polarsteps-central-baptist-center-tx-20260303',title:'Central Baptist Church | Center, TX',date:'2026-03-03',end:'2026-03-03',contactId:'mfst-danny-dodson',kind:'meeting',source:'Polarsteps journal',debrief:{status:'completed',preached:'yes',sermons:[],handout:'unknown',outreach:'',salvations:null,biblesPassed:null,visitors:'unknown',lodging:'unknown',support:'unknown',journal:'Flew down to visit Bro. Netterville. Preached school chapel.',photo:'',polarstepsUpdated:true,completedAt:'2026-09-26T00:00:00.000Z',snoozedUntil:'',polarstepsImport:true}});
+ }
  const lodging=(state.calendarMeetings||[]).find(m=>m.id==='ga9qckufo0mh8pd4oap03fkal8');
  if(lodging){lodging.excludeFromStats=true;lodging.classificationConfirmed=true;lodging.classificationNote='Lodging entry overlaps the separate missions conference event.';}
  applyEmailIdentityReviews(state);

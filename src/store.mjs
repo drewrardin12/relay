@@ -7,9 +7,9 @@ import {financeDefaults,financePlan} from './finance-plan.mjs';
 import {giftCategory} from './finance.mjs';
 import {readLocalCopy,writeLocalCopy} from './local-database.mjs';
 import {recoverCoordinates} from './geocoding.mjs';
-import {brianPetrickRemovals,correctBrianPetrick,reviewedPastorRemovals,correctReviewedPastors,correctVoyageOnlyChurches} from './contact-corrections.mjs?v=20260921-family-recipients';
+import {brianPetrickRemovals,correctBrianPetrick,reviewedPastorRemovals,correctReviewedPastors,correctVoyageOnlyChurches} from './contact-corrections.mjs?v=20260926-polarsteps-audit';
 import {normalizeContact,fields,iso,phones} from './domain.mjs';
-import {exactCrossWingDuplicates,consolidateExactDuplicates} from './contact-corrections.mjs?v=20260921-family-recipients';
+import {exactCrossWingDuplicates,consolidateExactDuplicates} from './contact-corrections.mjs?v=20260926-polarsteps-audit';
 const KEY='relay_redesign_working_copy_v1';
 const REVIEWED_LINK_REPAIRS=new Map([
  ['mfst-allen-copeland','central-baptist-church-amarillo-tx'],['sandusky-oh','mfst-david-oh-young'],['grace-baptist-church-attica-in-in','mfst-xgqcq180zj9mpmwnvus'],
