@@ -30,6 +30,11 @@ export function snoozeMeetingDebrief(meeting,today=new Date().toISOString().slic
  return meeting;
 }
 
+export function snoozeMeetingDebriefById(state,id,today=new Date().toISOString().slice(0,10)){
+ const meeting=journalMeetings(state).find(row=>row.id===id);
+ return meeting?snoozeMeetingDebrief(meeting,today):null;
+}
+
 export function saveMeetingDebrief(meeting,fields,now=new Date().toISOString()){
  meeting.debrief={
   ...(meeting.debrief||{}),status:fields.status||'completed',

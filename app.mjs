@@ -11,7 +11,7 @@ import {CONTACT_TYPES,reconcileContactDesignations,directoryEligible,missingDono
 import {validCoordinates,recoverCoordinates,locateChurch,locationChanged,clearLocation} from './geocoding.mjs';
 import {helmStats} from './helm-stats.mjs?v=20260919-calendar-fallback';
 import {locationLabel,visitedStates,contactPhoto,journalPhoto} from './contact-polish.mjs';
-import {journalMeetings,pendingMeetingDebriefs,pastMeetingDebriefs,snoozeMeetingDebrief,saveMeetingDebrief,applyDebriefToContact,polarstepsCatchup,ministryJournalStats} from './meeting-debrief.mjs?v=20260926-calendar-journal';
+import {journalMeetings,pendingMeetingDebriefs,pastMeetingDebriefs,snoozeMeetingDebriefById,saveMeetingDebrief,applyDebriefToContact,polarstepsCatchup,ministryJournalStats} from './meeting-debrief.mjs?v=20260927-snooze-fix';
 import {importDeviceActivity} from './device-activity.mjs?v=20260920';
 import {dataHealth} from './data-health.mjs?v=20260921';
 import {importCalendarMetadata} from './calendar-sync.mjs?v=20260921';
@@ -345,7 +345,7 @@ async function action(a,el){
   case 'polarsteps-catchup':showPolarstepsCatchup();break;
   case 'meeting-catchup':meetingCatchup();break;
   case 'meeting-debrief':meetingDebriefForm(id);break;
-  case 'meeting-debrief-snooze':{const m=state.meetings.find(row=>row.id===id);if(m){snoozeMeetingDebrief(m);await save('Meeting reminder moved to tomorrow');closeSheet();}break;}
+  case 'meeting-debrief-snooze':{const m=snoozeMeetingDebriefById(state,id);if(m){await save('Meeting reminder moved to tomorrow');closeSheet();}else toast('Meeting reminder could not be found.');break;}
   case 'email-ignore':ignoreEmails(state,[el.dataset.email]);if(await save('Address dismissed from review'))render();break;
   case 'email-ignore-selected':{const values=[...document.querySelectorAll('.email-review-select:checked')].map(input=>input.value);if(!values.length){toast('Select addresses first');break;}if(confirm(`Dismiss ${values.length} addresses from review? Gmail and saved contact history will not be deleted.`)){ignoreEmails(state,values);if(await save('Selected addresses dismissed'))render();}break;}
   case 'email-select-all':document.querySelectorAll('.email-review-select').forEach(input=>{input.checked=true;});break;
