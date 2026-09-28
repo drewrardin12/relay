@@ -57,9 +57,9 @@ function hero(name,subtitle){return `<header class="hero ${name}" ${name==='helm
 function greeting(){const h=new Date().getHours();return h<12?'Good morning':h<18?'Good afternoon':'Good evening';}
 function light(){const h=new Date().getHours();return h<7||h>=21?'night':h<12?'morning':h<17?'day':'evening';}
 function dailyVerse(){const n=Math.floor((Date.UTC(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()))/86400000);const [text,ref]=VERSES[n%VERSES.length];return `<div class="verse">“${e(text)}”<cite>${e(ref)}</cite></div>`;}
-function scheduleAutoSync(){
+function scheduleAutoSync(delay=800){
  if(!driveAuthorized()||!state.cloudSync)return;
- clearTimeout(autoSyncTimer);autoSyncTimer=setTimeout(()=>autoSync(),12000);
+ clearTimeout(autoSyncTimer);autoSyncTimer=setTimeout(()=>autoSync(),delay);
 }
 async function autoSync(load=false){
  if(!driveAuthorized())return;
@@ -446,7 +446,12 @@ document.addEventListener('change',async event=>{
 });
 window.addEventListener('hashchange',()=>{closeSheet();window.scrollTo(0,0);render();});
 window.addEventListener('offline',()=>toast('Offline · your working copy remains available'));
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(state.course?.mode==='state'&&state.course.selectedDate!==iso()){state.course=null;save('');}render();}});
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden){if(driveAuthorized()&&state.cloudSync)autoSync();return;}
+ if(state.course?.mode==='state'&&state.course.selectedDate!==iso()){state.course=null;save('');}
+ if(driveAuthorized()&&state.cloudSync)autoSync();
+ render();
+});
 if(state.course?.mode==='state'&&state.course.selectedDate!==iso()){state.course=null;save('');}
 render();
 async function startPrivateSync(){

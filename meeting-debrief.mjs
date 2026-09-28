@@ -73,6 +73,9 @@ export function ministryJournalStats(state){
 
 export function latestJourneyMeeting(state,today=new Date().toISOString().slice(0,10),eligible=()=>true){
  return journalMeetings(state)
-  .filter(meeting=>meetingEnd(meeting)<today&&!['cancelled','postponed'].includes(meeting?.debrief?.status)&&eligible(meeting))
-  .sort((a,b)=>meetingEnd(b).localeCompare(meetingEnd(a)))[0]||null;
+  // Google Calendar stores an all-day event's end date as the first day after
+  // the event. Use the meeting's start date for the journey map so yesterday's
+  // stop is visible today instead of being held back an extra day.
+  .filter(meeting=>day(meeting?.date)<today&&!['cancelled','postponed'].includes(meeting?.debrief?.status)&&eligible(meeting))
+  .sort((a,b)=>day(b?.date).localeCompare(day(a?.date)))[0]||null;
 }
