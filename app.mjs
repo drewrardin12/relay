@@ -30,6 +30,7 @@ let state=await openWorkingCopy(),wing='helm',directoryFilter='All',searchText='
 let startupSaveFailed=false;
 let sheetsReport=null,sheetsBusy=false,sheetsConnectionError='';
 let driveBusy=false,driveMessage='';
+let accountSyncTimer=null;
 let autoSyncTimer=null,autoSyncRunning=false,autoSyncQueued=false;
 recoverCoordinates(state.contacts);reconcileContactDesignations(state);try{await persist(state);}catch{startupSaveFailed=true;}
 const app=document.querySelector('#app'),main=document.querySelector('#main'),sheet=document.querySelector('#sheet');
@@ -60,6 +61,13 @@ function dailyVerse(){const n=Math.floor((Date.UTC(new Date().getFullYear(),new 
 function scheduleAutoSync(delay=800){
  if(!driveAuthorized()||!state.cloudSync)return;
  clearTimeout(autoSyncTimer);autoSyncTimer=setTimeout(()=>autoSync(),delay);
+}
+function startAccountSync(){
+ clearInterval(accountSyncTimer);
+ if(!driveAuthorized())return;
+ accountSyncTimer=setInterval(()=>{
+  if(!document.hidden&&navigator.onLine!==false)autoSync(!state.contacts.length);
+ },10000);
 }
 async function autoSync(load=false){
  if(!driveAuthorized())return;
@@ -125,7 +133,7 @@ function render(){
  wing=['manifest','voyage','tides'].includes(page)?page:page==='courselist'?'voyage':page==='contact'||page==='calling'?c?.wing||'voyage':page==='tide'?'tides':'helm';
  app.dataset.wing=wing;
  const views={emailhistory:renderEmailHistory,helm:renderHelm,manifest:renderManifest,voyage:renderVoyage,tides:renderTides,calendar:renderCalendar,day:()=>renderDay(id),goal:()=>renderFinance(state,goalYear,{e,MONEY,PRECISE,topbar,btn,section,compassChart}),settings:renderSettings,importreview:renderImportReview,offcourse:renderOffCourse,relays:renderRelayList,contact:()=>renderContact(c),calling:()=>renderCalling(c),tide:()=>renderTide(id),courselist:renderCourseList,ledger:renderLedger};
- const copyStatus=state.mode==='demo'?'Design build · demo data only':!state.contacts.length?'No private copy loaded on this device':state.cloudSync?`Saved on this device · Drive last verified ${new Date(state.cloudSync.checkedAt).toLocaleString()} · automatic sync on`:'Saved on this device · not yet verified with private Drive';
+ const copyStatus=state.mode==='demo'?'Design build · demo data only':!state.contacts.length?'Signing in and loading your Relay account…':state.cloudSync?`Relay account current · ${new Date(state.cloudSync.checkedAt).toLocaleString()}`:'Saved on this device · connecting to your Relay account';
  const setup=!state.contacts.length?`<div class="page"><div class="panel"><h3>Load your private Relay copy</h3><p>This device has no contacts loaded. Zero statistics here do not describe your ministry records. Safari and the Home Screen app have separate storage.</p>${btn('route','Open private sync & backups','primary wide','data-route="#settings"')}</div></div>`:'';
  main.innerHTML=`${state.mode==='demo'||!state.contacts.length?`<div class="working-label">${icon(state.mode==='demo'?'info':'download')}${e(copyStatus)}</div>`:''}${setup}${(views[page]||renderHelm)()}`;
  if(page==='settings'){
@@ -141,7 +149,7 @@ function render(){
 }
 function renderDriveSettings(){
  prepareDriveSignIn().catch(()=>{});
- const status=driveAuthorized()&&state.cloudSync?'Connected and current':driveAuthorized()?'Connected · checking private copy':'Connect Google once on this device';
+ const status=driveAuthorized()&&state.cloudSync?`Relay account connected${state.cloudSync.email?` · ${state.cloudSync.email}`:''}`:driveAuthorized()?'Signed in · loading your Relay account':'Sign in to your Relay account';
  const conflict=driveMessage.includes('Both this device and another device changed');
  return `<div class="page">${section('Private sync')}<div class="panel"><div class="row between"><div><h3>Google Drive</h3><p class="small">${e(status)}</p></div>${driveAuthorized()?icon('check','gold'):''}</div>${state.cloudSync?`<p class="tiny subtle">Last checked ${e(new Date(state.cloudSync.checkedAt).toLocaleString())}</p>`:''}<p class="small" role="status">${e(driveMessage)}</p>${conflict?`<div class="stack">${btn('drive-load','Use private Drive copy on this device','primary wide',driveBusy?'disabled':'')}<p class="tiny subtle">Your exported phone backup remains unchanged in Files.</p></div>`:''}${driveAuthorized()?`<details class="details"><summary>Sync options</summary><div class="stack">${btn('drive-sync','Check sync now','secondary wide',driveBusy?'disabled':'')}${btn('drive-load','Reload from private Drive','secondary wide',driveBusy?'disabled':'')}${privateHostActive()?'':btn('drive-disconnect','Disconnect private Drive','secondary wide',driveBusy?'disabled':'')}</div><p class="tiny subtle">Normal changes save automatically. Use these options only for troubleshooting or moving to another device.</p></details>`:btn('drive-connect','Connect private Google Drive','primary wide',driveBusy?'disabled':'')}</div></div>`;
 }
@@ -452,13 +460,14 @@ document.addEventListener('visibilitychange',()=>{
  if(driveAuthorized()&&state.cloudSync)autoSync();
  render();
 });
+window.addEventListener('online',()=>{if(driveAuthorized()){startAccountSync();autoSync(!state.contacts.length);}});
 if(state.course?.mode==='state'&&state.course.selectedDate!==iso()){state.course=null;save('');}
 render();
 async function startPrivateSync(){
  try{
   await prepareDriveSignIn();
   if(!driveAuthorized()&&state.cloudSync&&!privateHostActive())await authorizeDrive({silent:true});
-  if(driveAuthorized())await autoSync(!state.contacts.length);
+  if(driveAuthorized()){await autoSync(!state.contacts.length);startAccountSync();}
  }catch{/* Google may require one visible Connect tap after the browser fully closes. */}
  finally{showStartupPrompts();}
 }
