@@ -1,5 +1,5 @@
 import {icon} from './icons.mjs';
-import {prepareDriveSignIn,authorizeDrive,driveAuthorized,disconnectDrive,syncWorkingCopy,payloadHash,privateHostActive,readPrivateEmailHistory} from './drive-sync.mjs?v=20260921-gmail-auto-2';
+import {prepareDriveSignIn,authorizeDrive,driveAuthorized,disconnectDrive,syncWorkingCopy,makeAccountMaster,payloadHash,privateHostActive,readPrivateEmailHistory} from './drive-sync.mjs?v=20260928-account-master';
 import {applyRecipientUpdate} from './recipient-import.mjs';
 import {isFriend,recipientEmails,contactFilter} from './recipient-tools.mjs';
 import {normalizeContact} from './domain.mjs';
@@ -151,7 +151,7 @@ function renderDriveSettings(){
  prepareDriveSignIn().catch(()=>{});
  const status=driveAuthorized()&&state.cloudSync?`Relay account connected${state.cloudSync.email?` · ${state.cloudSync.email}`:''}`:driveAuthorized()?'Signed in · loading your Relay account':'Sign in to your Relay account';
  const conflict=driveMessage.includes('Both this device and another device changed');
- return `<div class="page">${section('Private sync')}<div class="panel"><div class="row between"><div><h3>Google Drive</h3><p class="small">${e(status)}</p></div>${driveAuthorized()?icon('check','gold'):''}</div>${state.cloudSync?`<p class="tiny subtle">Last checked ${e(new Date(state.cloudSync.checkedAt).toLocaleString())}</p>`:''}<p class="small" role="status">${e(driveMessage)}</p>${conflict?`<div class="stack">${btn('drive-load','Use private Drive copy on this device','primary wide',driveBusy?'disabled':'')}<p class="tiny subtle">Your exported phone backup remains unchanged in Files.</p></div>`:''}${driveAuthorized()?`<details class="details"><summary>Sync options</summary><div class="stack">${btn('drive-sync','Check sync now','secondary wide',driveBusy?'disabled':'')}${btn('drive-load','Reload from private Drive','secondary wide',driveBusy?'disabled':'')}${privateHostActive()?'':btn('drive-disconnect','Disconnect private Drive','secondary wide',driveBusy?'disabled':'')}</div><p class="tiny subtle">Normal changes save automatically. Use these options only for troubleshooting or moving to another device.</p></details>`:btn('drive-connect','Connect private Google Drive','primary wide',driveBusy?'disabled':'')}</div></div>`;
+ return `<div class="page">${section('Private sync')}<div class="panel"><div class="row between"><div><h3>Relay account</h3><p class="small">${e(status)}</p></div>${driveAuthorized()?icon('check','gold'):''}</div>${state.cloudSync?`<p class="tiny subtle">Last checked ${e(new Date(state.cloudSync.checkedAt).toLocaleString())}</p>`:''}<p class="small" role="status">${e(driveMessage)}</p>${conflict?`<p class="small">This device and the account copy both changed. Choose the device that has your newest information.</p>`:''}${driveAuthorized()?`<details class="details"><summary>Sync options</summary><div class="stack">${btn('drive-sync','Check sync now','secondary wide',driveBusy?'disabled':'')}${btn('drive-load','Use the account copy on this device','secondary wide',driveBusy?'disabled':'')}${btn('drive-master','Use this device as the account copy','secondary wide',driveBusy?'disabled':'')}${privateHostActive()?'':btn('drive-disconnect','Sign out on this device','secondary wide',driveBusy?'disabled':'')}</div><p class="tiny subtle">Normal changes synchronize automatically. The account-copy choices are only for moving your existing data into Relay once.</p></details>`:btn('drive-connect','Sign in with Google','primary wide',driveBusy?'disabled':'')}</div></div>`;
 }
 function renderHelm(){
  const reach=helmStats(state);
@@ -305,6 +305,13 @@ async function action(a,el){
     await persist(result.next);state=result.next;
     driveMessage=result.status==='loaded'?'Complete cloud copy loaded and saved on this device.':result.status==='saved'?'Complete copy saved to private Drive and verified.':'This device matches the private cloud copy.';toast(driveMessage);
    }catch(error){driveMessage=error.message;toast(error.message);}
+   finally{driveBusy=false;render();}break;
+  }
+  case 'drive-master':{
+   if(driveBusy||!confirm('Use this device’s complete Relay information as the account copy? The older account revision will remain preserved for recovery.'))return;
+   driveBusy=true;driveMessage='Saving this device as the Relay account copy…';render();
+   try{const result=await makeAccountMaster(JSON.parse(exportData(state)),{expectedEmail:state.emailHistory?.mailbox||state.cloudSync?.email,validate:parseImport,backup:saveSheetsBackup});await persist(result.next);state=result.next;driveMessage='This device is now the Relay account master. Other devices will update automatically.';toast(driveMessage);}
+   catch(error){driveMessage=error.message;toast(error.message);}
    finally{driveBusy=false;render();}break;
   }
   case 'sheets-connect':case 'sheets-check':case 'sheets-enable-write':{

@@ -95,3 +95,19 @@ export async function syncWorkingCopy(state,{transport=driveTransport,backup,val
  const finalHead=revisionHead(await transport.list());if(finalHead?.id!==saved.id)throw Error('Cloud changed during verification. Your revision is preserved. Recheck before editing.');
  return {next:{...state,cloudSync:{account:account.permissionId,email:account.emailAddress,revision:saved.id,hash:localHash,checkedAt:new Date().toISOString()}},status:'saved'};
 }
+export async function makeAccountMaster(state,{transport=driveTransport,backup,validate,expectedEmail}={}){
+ if(typeof backup!=='function'||typeof validate!=='function')throw Error('Sync requires a local backup and backup validator.');
+ if(!state.contacts?.length||!Array.isArray(state.calendarMeetings))throw Error('This device does not contain a complete Relay copy. Nothing was uploaded.');
+ const account=await transport.account();
+ if(expectedEmail&&account.emailAddress.toLowerCase()!==expectedEmail.toLowerCase())throw Error('Wrong Google account. Disconnect and choose '+expectedEmail+'.');
+ validate(JSON.stringify(syncPayload(state)));
+ await backup({workingCopy:state,reason:'before making this device the Relay account master'});
+ const head=revisionHead(await transport.list()),localHash=await payloadHash(state);
+ const envelope={kind:'relay-private-sync',version:1,hash:localHash,parent:head?.id||null,createdAt:new Date().toISOString(),data:syncPayload(state)};
+ const saved=await transport.append(envelope,head?.id,localHash);
+ if(!saved?.id)throw Error('Upload result uncertain. Nothing was removed; check again before retrying.');
+ await validatedCloud(transport,{...saved,appProperties:{...saved.appProperties,hash:localHash}});
+ const finalHead=revisionHead(await transport.list());
+ if(finalHead?.id!==saved.id)throw Error('Another device saved during migration. Your copy is preserved; retry when the other device is closed.');
+ return {next:{...state,cloudSync:{account:account.permissionId,email:account.emailAddress,revision:saved.id,hash:localHash,checkedAt:new Date().toISOString()}},status:'saved'};
+}
