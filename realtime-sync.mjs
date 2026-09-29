@@ -27,7 +27,15 @@ async function sdk(){
 
 export async function prepareRealtimeSync(){
  if(ready)return ready;
- ready=(async()=>{const a=await sdk();await a.authStateReady();const redirect=await a.getRedirectResult(auth).catch(()=>null);return redirect?.user||auth.currentUser||null;})();
+ ready=(async()=>{
+  const a=await sdk();
+  const redirect=await a.getRedirectResult(auth).catch(()=>null);
+  if(redirect?.user||auth.currentUser)return redirect?.user||auth.currentUser;
+  return new Promise((resolve,reject)=>{
+   let stop=()=>{};
+   stop=a.onAuthStateChanged(auth,user=>{stop();resolve(user||null);},error=>{stop();reject(error);});
+  });
+ })();
  return ready;
 }
 export const realtimeUser=()=>auth?.currentUser||null;
