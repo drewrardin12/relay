@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b1b2b">
+  <title>Repairing Relay</title>
+  <style>html,body{min-height:100%;margin:0;background:#0b1b2b;color:#f7f0df;font:18px system-ui}body{display:grid;place-items:center;text-align:center;padding:32px;box-sizing:border-box}small{color:#aab7c8}</style>
+</head>
+<body><div><p>Repairing Relay…</p><small>Your ministry records are not being deleted.</small></div>
+<script>
+(async()=>{
+  try {
+    if ('serviceWorker' in navigator) {
+      const registrations=await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map(registration=>registration.unregister()));
+    }
+    if ('caches' in window) {
+      const names=await caches.keys();
+      await Promise.all(names.filter(name=>name.startsWith('relay-shell-')).map(name=>caches.delete(name)));
+    }
+  } finally {
+    location.replace('./launch.html?v=20260929-safari-recovery3#helm');
+  }
+})();
+</script></body></html>
