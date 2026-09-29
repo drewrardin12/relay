@@ -51,6 +51,16 @@ export async function signInRealtime(){
  if(result.user.email?.toLowerCase()!==RELAY_EMAIL){await a.signOut(auth);throw Error('Choose the Rardin Ministries Google account.');}
  return result.user;
 }
+export async function signInRealtimePassword(password){
+ const a=await sdk();
+ if(!password||password.length<6)throw Error('Enter your Relay password.');
+ const result=await a.signInWithEmailAndPassword(auth,RELAY_EMAIL,password);
+ return result.user;
+}
+export async function sendRealtimePasswordReset(){
+ const a=await sdk();
+ await a.sendPasswordResetEmail(auth,RELAY_EMAIL);
+}
 export async function signOutRealtime(){const a=await sdk();active?.stop?.();active=null;await a.signOut(auth);}
 
 const userRoot=uid=>api.doc(db,'users',uid);

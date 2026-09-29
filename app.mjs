@@ -1,6 +1,6 @@
 import {icon} from './icons.mjs';
 import {prepareDriveSignIn,authorizeDrive,driveAuthorized,disconnectDrive,syncWorkingCopy,makeAccountMaster,payloadHash,privateHostActive,readPrivateEmailHistory} from './drive-sync.mjs?v=20260928-account-master';
-import {prepareRealtimeSync,realtimeUser,signInRealtime,signOutRealtime,openRealtimeAccount,establishRealtimeAccount,scheduleRealtimeSave} from './realtime-sync.mjs?v=20260929-mobile-redirect';
+import {prepareRealtimeSync,realtimeUser,signInRealtimePassword,sendRealtimePasswordReset,signOutRealtime,openRealtimeAccount,establishRealtimeAccount,scheduleRealtimeSave} from './realtime-sync.mjs?v=20260929-password-login';
 import {applyRecipientUpdate} from './recipient-import.mjs';
 import {previewContactCleanup,applyContactCleanup} from './contact-cleanup.mjs';
 import {isFriend,recipientEmails,contactFilter} from './recipient-tools.mjs';
@@ -34,6 +34,7 @@ let startupSaveFailed=false;
 let sheetsReport=null,sheetsBusy=false,sheetsConnectionError='';
 let driveBusy=false,driveMessage='';
 let realtimeBusy=false,realtimeStatus='Checking your Relay account…',realtimeReady=false;
+const RELAY_ACCOUNT_EMAIL=['rardins','abm'].join('.')+'@'+'gmail.com';
 let accountSyncTimer=null;
 let autoSyncTimer=null,autoSyncRunning=false,autoSyncQueued=false;
 recoverCoordinates(state.contacts);reconcileContactDesignations(state);try{await persist(state);}catch{startupSaveFailed=true;}
@@ -166,7 +167,7 @@ function renderDriveSettings(){
  prepareDriveSignIn().catch(()=>{});
  const user=realtimeUser();
  const live=user&&realtimeReady;
- const control=!user?btn('realtime-connect','Sign in with Google','primary wide',realtimeBusy?'disabled':''):!realtimeReady?btn('realtime-start','Use this device to start live sync','primary wide',realtimeBusy?'disabled':''):`<p class="tiny subtle">Changes save automatically and appear on your other signed-in devices. Offline changes wait safely and send when the device reconnects.</p>${btn('realtime-disconnect','Sign out on this device','secondary wide',realtimeBusy?'disabled':'')}`;
+ const control=!user?`<label class="field"><span>Relay password</span><input id="realtime-password" type="password" autocomplete="current-password" minlength="6" placeholder="Enter your Relay password"></label><div class="stack">${btn('realtime-password-login','Sign in to Relay','primary wide',realtimeBusy?'disabled':'')}${btn('realtime-password-reset','Set or reset Relay password','secondary wide',realtimeBusy?'disabled':'')}</div><p class="tiny subtle">Use ${e(RELAY_ACCOUNT_EMAIL)} and the same Relay password on your phone, iPad, and Mac.</p>`:!realtimeReady?btn('realtime-start','Use this device to start live sync','primary wide',realtimeBusy?'disabled':''):`<p class="tiny subtle">Changes save automatically and appear on your other signed-in devices. Offline changes wait safely and send when the device reconnects.</p>${btn('realtime-disconnect','Sign out on this device','secondary wide',realtimeBusy?'disabled':'')}`;
  const account=`<div class="page">${section('Relay account')}<div class="panel"><div class="row between"><div><h3>Automatic device sync</h3><p class="small">${user?`Signed in · ${e(user.email||'')}`:'Sign in once on each device'}</p></div>${live?icon('check','gold'):''}</div><p class="small" role="status">${e(realtimeStatus)}</p>${control}</div></div>`;
  const status=driveAuthorized()&&state.cloudSync?`Relay account connected${state.cloudSync.email?` · ${state.cloudSync.email}`:''}`:driveAuthorized()?'Signed in · loading your Relay account':'Sign in to your Relay account';
  const conflict=driveMessage.includes('Both this device and another device changed');
@@ -351,9 +352,15 @@ async function connectRealtimeAccount(){
 async function action(a,el){
  const id=el.dataset.id,c=contact(id);
  switch(a){
-  case 'realtime-connect':{
-   if(realtimeBusy)return;realtimeBusy=true;realtimeStatus='Opening Google sign-in…';render();
-   try{const user=await signInRealtime();if(user)await connectRealtimeAccount();}
+  case 'realtime-password-login':{
+   if(realtimeBusy)return;const password=document.querySelector('#realtime-password')?.value||'';realtimeBusy=true;realtimeStatus='Signing in to Relay…';render();
+   try{const user=await signInRealtimePassword(password);if(user)await connectRealtimeAccount();}
+   catch(error){realtimeStatus=error.message;toast(error.message);}
+   finally{realtimeBusy=false;render();}break;
+  }
+  case 'realtime-password-reset':{
+   if(realtimeBusy)return;realtimeBusy=true;realtimeStatus='Sending the Relay password email…';render();
+   try{await sendRealtimePasswordReset();realtimeStatus=`Password email sent to ${RELAY_ACCOUNT_EMAIL}. Open it, choose your Relay password, then return here to sign in.`;toast('Relay password email sent');}
    catch(error){realtimeStatus=error.message;toast(error.message);}
    finally{realtimeBusy=false;render();}break;
   }
