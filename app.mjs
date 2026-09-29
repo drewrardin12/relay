@@ -13,7 +13,7 @@ import {CONTACT_TYPES,reconcileContactDesignations,directoryEligible,missingDono
 import {validCoordinates,recoverCoordinates,locateChurch,locationChanged,clearLocation} from './geocoding.mjs';
 import {helmStats} from './helm-stats.mjs?v=20260919-calendar-fallback';
 import {locationLabel,visitedStates,contactPhoto,journalPhoto} from './contact-polish.mjs';
-import {journalMeetings,pendingMeetingDebriefs,pastMeetingDebriefs,snoozeMeetingDebriefById,saveMeetingDebrief,applyDebriefToContact,polarstepsCatchup,ministryJournalStats,latestJourneyMeeting} from './meeting-debrief.mjs?v=20260928-guided-journal';
+import {journalMeetings,pendingMeetingDebriefs,pastMeetingDebriefs,snoozeMeetingDebriefById,saveMeetingDebrief,applyDebriefToContact,polarstepsCatchup,ministryJournalStats,latestJourneyMeeting} from './meeting-debrief.mjs?v=20260929-field-stats';
 import {importDeviceActivity} from './device-activity.mjs?v=20260920';
 import {dataHealth} from './data-health.mjs?v=20260921';
 import {importCalendarMetadata} from './calendar-sync.mjs?v=20260921';
