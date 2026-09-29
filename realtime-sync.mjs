@@ -42,6 +42,8 @@ export const realtimeUser=()=>auth?.currentUser||null;
 
 export async function signInRealtime(){
  const a=await sdk(),provider=new a.GoogleAuthProvider();provider.setCustomParameters({login_hint:RELAY_EMAIL,prompt:'select_account'});
+ const standalone=window.matchMedia?.('(display-mode: standalone)')?.matches||navigator.standalone===true;
+ if(standalone){await a.signInWithRedirect(auth,provider);return null;}
  let result;try{result=await a.signInWithPopup(auth,provider);}catch(error){
   if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment'].includes(error?.code)){await a.signInWithRedirect(auth,provider);return null;}
   throw error;
