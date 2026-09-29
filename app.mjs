@@ -1,5 +1,6 @@
 import {icon} from './icons.mjs';
 import {prepareDriveSignIn,authorizeDrive,driveAuthorized,disconnectDrive,syncWorkingCopy,makeAccountMaster,payloadHash,privateHostActive,readPrivateEmailHistory} from './drive-sync.mjs?v=20260928-account-master';
+import {prepareRealtimeSync,realtimeUser,signInRealtime,signOutRealtime,openRealtimeAccount,establishRealtimeAccount,scheduleRealtimeSave} from './realtime-sync.mjs?v=20260929-live-account';
 import {applyRecipientUpdate} from './recipient-import.mjs';
 import {previewContactCleanup,applyContactCleanup} from './contact-cleanup.mjs';
 import {isFriend,recipientEmails,contactFilter} from './recipient-tools.mjs';
@@ -32,6 +33,7 @@ let journalWizard=null;
 let startupSaveFailed=false;
 let sheetsReport=null,sheetsBusy=false,sheetsConnectionError='';
 let driveBusy=false,driveMessage='';
+let realtimeBusy=false,realtimeStatus='Checking your Relay account…',realtimeReady=false;
 let accountSyncTimer=null;
 let autoSyncTimer=null,autoSyncRunning=false,autoSyncQueued=false;
 recoverCoordinates(state.contacts);reconcileContactDesignations(state);try{await persist(state);}catch{startupSaveFailed=true;}
@@ -61,7 +63,7 @@ function greeting(){const h=new Date().getHours();return h<12?'Good morning':h<1
 function light(){const h=new Date().getHours();return h<7||h>=21?'night':h<12?'morning':h<17?'day':'evening';}
 function dailyVerse(){const n=Math.floor((Date.UTC(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()))/86400000);const [text,ref]=VERSES[n%VERSES.length];return `<div class="verse">“${e(text)}”<cite>${e(ref)}</cite></div>`;}
 function scheduleAutoSync(delay=800){
- if(!driveAuthorized()||!state.cloudSync)return;
+ if(realtimeReady||!driveAuthorized()||!state.cloudSync)return;
  clearTimeout(autoSyncTimer);autoSyncTimer=setTimeout(()=>autoSync(),delay);
 }
 function startAccountSync(){
@@ -72,7 +74,7 @@ function startAccountSync(){
  },10000);
 }
 async function autoSync(load=false){
- if(!driveAuthorized())return;
+ if(realtimeReady||!driveAuthorized())return;
  if(autoSyncRunning||driveBusy){autoSyncQueued=true;return;}
  autoSyncRunning=true;driveMessage=load?'Loading the private cloud copy…':'Checking private Drive automatically…';render();
  try{
@@ -90,7 +92,7 @@ async function autoSync(load=false){
  }catch(error){driveMessage=error.message;}
  finally{autoSyncRunning=false;render();if(autoSyncQueued){autoSyncQueued=false;scheduleAutoSync();}}
 }
-async function save(message='Saved to this working copy'){try{await persist(state);scheduleAutoSync();if(message)toast(message);return true;}catch{toast('Could not save. Keep this page open and export a backup before reloading.');return false;}}
+async function save(message='Saved to this working copy'){try{await persist(state);scheduleAutoSync();scheduleRealtimeSave(state,(status,error)=>{realtimeStatus=status==='saved'?'Saved to your Relay account':error?.message||'Relay account save needs attention';if(location.hash==='#settings')render();});if(message)toast(message);return true;}catch{toast('Could not save. Keep this page open and export a backup before reloading.');return false;}}
 let toastTimer;
 function toast(text,undo){clearTimeout(toastTimer);const el=document.querySelector('#toast');el.textContent=text;if(undo){const b=document.createElement('button');b.textContent='Undo';b.onclick=()=>{undo();el.classList.remove('show');};el.append(b);}el.classList.add('show');toastTimer=setTimeout(()=>el.classList.remove('show'),6500);}
 function go(hash){if(location.hash===hash)render();else location.hash=hash;}
@@ -162,9 +164,13 @@ function render(){
 }
 function renderDriveSettings(){
  prepareDriveSignIn().catch(()=>{});
+ const user=realtimeUser();
+ const live=user&&realtimeReady;
+ const control=!user?btn('realtime-connect','Sign in with Google','primary wide',realtimeBusy?'disabled':''):!realtimeReady?btn('realtime-start','Use this device to start live sync','primary wide',realtimeBusy?'disabled':''):`<p class="tiny subtle">Changes save automatically and appear on your other signed-in devices. Offline changes wait safely and send when the device reconnects.</p>${btn('realtime-disconnect','Sign out on this device','secondary wide',realtimeBusy?'disabled':'')}`;
+ const account=`<div class="page">${section('Relay account')}<div class="panel"><div class="row between"><div><h3>Automatic device sync</h3><p class="small">${user?`Signed in · ${e(user.email||'')}`:'Sign in once on each device'}</p></div>${live?icon('check','gold'):''}</div><p class="small" role="status">${e(realtimeStatus)}</p>${control}</div></div>`;
  const status=driveAuthorized()&&state.cloudSync?`Relay account connected${state.cloudSync.email?` · ${state.cloudSync.email}`:''}`:driveAuthorized()?'Signed in · loading your Relay account':'Sign in to your Relay account';
  const conflict=driveMessage.includes('Both this device and another device changed');
- return `<div class="page">${section('Private sync')}<div class="panel"><div class="row between"><div><h3>Relay account</h3><p class="small">${e(status)}</p></div>${driveAuthorized()?icon('check','gold'):''}</div>${state.cloudSync?`<p class="tiny subtle">Last checked ${e(new Date(state.cloudSync.checkedAt).toLocaleString())}</p>`:''}<p class="small" role="status">${e(driveMessage)}</p>${conflict?`<p class="small">This device and the account copy both changed. Choose the device that has your newest information.</p>`:''}${driveAuthorized()?`<details class="details"><summary>Sync options</summary><div class="stack">${btn('drive-sync','Check sync now','secondary wide',driveBusy?'disabled':'')}${btn('drive-load','Use the account copy on this device','secondary wide',driveBusy?'disabled':'')}${btn('drive-master','Use this device as the account copy','secondary wide',driveBusy?'disabled':'')}${privateHostActive()?'':btn('drive-disconnect','Sign out on this device','secondary wide',driveBusy?'disabled':'')}</div><p class="tiny subtle">Normal changes synchronize automatically. The account-copy choices are only for moving your existing data into Relay once.</p></details>`:btn('drive-connect','Sign in with Google','primary wide',driveBusy?'disabled':'')}</div></div>`;
+ return account+`<div class="page">${section('Recovery sync')}<details class="details"><summary>Old Google Drive recovery tools</summary><div class="panel"><div class="row between"><div><h3>Previous account copy</h3><p class="small">${e(status)}</p></div>${driveAuthorized()?icon('check','gold'):''}</div>${state.cloudSync?`<p class="tiny subtle">Last checked ${e(new Date(state.cloudSync.checkedAt).toLocaleString())}</p>`:''}<p class="small" role="status">${e(driveMessage)}</p>${conflict?`<p class="small">This device and the old Drive copy both changed.</p>`:''}${driveAuthorized()?`<div class="stack">${btn('drive-sync','Check old copy','secondary wide',driveBusy?'disabled':'')}${btn('drive-load','Load old account copy','secondary wide',driveBusy?'disabled':'')}${btn('drive-master','Save this device to old copy','secondary wide',driveBusy?'disabled':'')}${privateHostActive()?'':btn('drive-disconnect','Disconnect old sync','secondary wide',driveBusy?'disabled':'')}</div>`:btn('drive-connect','Connect old Google Drive copy','secondary wide',driveBusy?'disabled':'')}</div></details></div>`;
 }
 function renderHelm(){
  const reach=helmStats(state);
@@ -327,9 +333,39 @@ function showMeetingReminder(){
  const m=pendingMeetingDebriefs(state)[0];if(!m)return false;
  openSheet('Journal still needed',`<div class="panel"><h3>${e(meetingName(m))}</h3><p class="small subtle">Ended ${e(full(m.end||m.date))}</p></div><p>Complete the guided journal when you are ready. It remains available from this church’s record.</p><div class="stack">${btn('meeting-debrief','Complete journal','primary wide',`data-id="${e(m.id)}"`)}${btn('close-sheet','Later','secondary wide')}</div>`);return true;
 }
+async function applyRealtimeChange(change){
+ if(change.meta)Object.assign(state,change.meta);else if(change.key)state[change.key]=change.rows;
+ state.realtimeSync={email:realtimeUser()?.email||'',checkedAt:new Date().toISOString()};
+ await persist(state);realtimeStatus='Updated from your Relay account';render();
+}
+async function connectRealtimeAccount(){
+ const result=await openRealtimeAccount(state,{onRemote:applyRealtimeChange});
+ if(result.status==='loaded'){
+  state=result.state;state.realtimeSync={email:result.email,checkedAt:new Date().toISOString()};await persist(state);
+  realtimeReady=true;realtimeStatus='Live sync is on';render();
+ }else if(result.status==='needs-migration'){
+  realtimeReady=false;realtimeStatus='Your secure account is ready. Choose the device containing the newest Relay information once.';render();
+ }
+ return result;
+}
 async function action(a,el){
  const id=el.dataset.id,c=contact(id);
  switch(a){
+  case 'realtime-connect':{
+   if(realtimeBusy)return;realtimeBusy=true;realtimeStatus='Opening Google sign-in…';render();
+   try{const user=await signInRealtime();if(user)await connectRealtimeAccount();}
+   catch(error){realtimeStatus=error.message;toast(error.message);}
+   finally{realtimeBusy=false;render();}break;
+  }
+  case 'realtime-start':{
+   if(realtimeBusy||!confirm('Start the Relay account with the information on this device? A recovery backup is saved first, and nothing in the old Google Drive copy is deleted.'))return;
+   realtimeBusy=true;realtimeStatus='Creating the first secure account copy…';render();
+   try{await saveSheetsBackup({workingCopy:JSON.parse(exportData(state)),reason:'before starting Relay live sync'});await establishRealtimeAccount(state);await connectRealtimeAccount();realtimeStatus='Live sync is on';toast('Relay live sync is ready');}
+   catch(error){realtimeStatus=error.message;toast(error.message);}
+   finally{realtimeBusy=false;render();}break;
+  }
+  case 'realtime-disconnect':
+   if(realtimeBusy)return;realtimeBusy=true;try{await signOutRealtime();realtimeReady=false;realtimeStatus='Signed out on this device. Your local and account copies remain saved.';}catch(error){realtimeStatus=error.message;}finally{realtimeBusy=false;render();}break;
   case 'drive-connect':
    if(driveBusy)return;
    driveBusy=true;driveMessage='Waiting for Google approval. Keep this Relay window open; nothing is uploaded by connecting.';render();
@@ -550,12 +586,20 @@ async function startPrivateSync(){
  }catch{/* Google may require one visible Connect tap after the browser fully closes. */}
  finally{showStartupPrompts();}
 }
+async function startRealtimeSync(){
+ try{
+  const user=await prepareRealtimeSync();
+  if(user)await connectRealtimeAccount();
+  else realtimeStatus='Sign in once to turn on automatic device sync';
+ }catch(error){realtimeStatus=error.message;}
+ finally{render();}
+}
 function showStartupPrompts(){
  if(sheet.open||showMeetingReminder())return;
  const donorEmailReminders=missingDonorEmails(state.contacts);
  if(donorEmailReminders.length)openSheet('Add supporting donors’ emails',`<p class="small subtle">These supporting individuals still need email addresses for your email list. Tap a name to edit their details.</p><div class="stack">${donorEmailReminders.map(c=>btn('donor-email-edit',e(c.pastor||c.givingDonorLabel),'secondary wide donor-email-reminder',`data-id="${e(c.id)}" aria-label="Add email for ${e(c.pastor||c.givingDonorLabel)}"`)).join('')}</div><p class="hint">This reminder returns when you open the app until all four have email addresses.</p>${btn('close-sheet','Later','secondary wide')}`);
 }
-startPrivateSync();
+startRealtimeSync();
 if(startupSaveFailed)toast('Browser storage is full. Your saved copy is intact; export a backup before editing.');
 if('serviceWorker'in navigator&&location.protocol!=='file:'){
  let refreshing=false;
