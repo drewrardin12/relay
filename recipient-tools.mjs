@@ -1,4 +1,4 @@
-export const isFriend=c=>c.contactType==='Friends & family';
+export const isFriend=c=>['Friends & family','Friend / family','Friend & family'].includes(c.contactType)||['Family','Friend'].includes(c.personalGroup);
 export function recipientEmails(contacts,emails){
  return [...new Set(contacts.filter(c=>!c.archived&&c.emailList===true).flatMap(emails).map(v=>String(v).trim().toLowerCase()).filter(v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)))].sort();
 }

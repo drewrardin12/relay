@@ -3,13 +3,13 @@ import {prepareDriveSignIn,authorizeDrive,driveAuthorized,disconnectDrive,syncWo
 import {prepareRealtimeSync,realtimeUser,signInRealtimePassword,sendRealtimePasswordReset,signOutRealtime,openRealtimeAccount,establishRealtimeAccount,scheduleRealtimeSave} from './realtime-sync.mjs?v=20260929-password-login';
 import {applyRecipientUpdate} from './recipient-import.mjs';
 import {previewContactCleanup,applyContactCleanup} from './contact-cleanup.mjs';
-import {isFriend,recipientEmails,contactFilter} from './recipient-tools.mjs?v=20260929-manifest-repair';
+import {isFriend,recipientEmails,contactFilter} from './recipient-tools.mjs?v=20260929-friends-family';
 import {normalizeContact} from './domain.mjs';
 import {prepareSheetsSignIn,authorizeSheets,disconnectSheets,sheetsAuthorized,sheetsWriteAuthorized,readSheetsSnapshot,compareSheetContacts,saveReviewedCorrections,saveRecipients,readRecipients,applySheetRecipients} from './sheets-connection.mjs?v=20260918-recipient-load';
 import {saveSheetsBackup} from './local-database.mjs';
 import {MAILBOX,importEmailHistory,reconcileEmails,assignEmail,ignoreEmails} from './email-history.mjs';
 import {triageEmails} from './email-triage.mjs';
-import {CONTACT_TYPES,reconcileContactDesignations,directoryEligible,missingDonorEmails} from './contact-designations.mjs';
+import {CONTACT_TYPES,reconcileContactDesignations,directoryEligible,missingDonorEmails} from './contact-designations.mjs?v=20260929-friends-family';
 import {validCoordinates,recoverCoordinates,locateChurch,locationChanged,clearLocation} from './geocoding.mjs';
 import {helmStats} from './helm-stats.mjs?v=20260919-calendar-fallback';
 import {locationLabel,visitedStates,contactPhoto,journalPhoto} from './contact-polish.mjs';
@@ -337,13 +337,14 @@ function showMeetingReminder(){
 }
 async function applyRealtimeChange(change){
  if(change.meta)Object.assign(state,change.meta);else if(change.key)state[change.key]=change.rows;
+ reconcileContactDesignations(state);
  state.realtimeSync={email:realtimeUser()?.email||'',checkedAt:new Date().toISOString()};
  await persist(state);realtimeStatus='Updated from your Relay account';render();
 }
 async function connectRealtimeAccount(){
  const result=await openRealtimeAccount(state,{onRemote:applyRealtimeChange});
  if(result.status==='loaded'){
-  state=result.state;state.realtimeSync={email:result.email,checkedAt:new Date().toISOString()};await persist(state);
+  state=result.state;reconcileContactDesignations(state);state.realtimeSync={email:result.email,checkedAt:new Date().toISOString()};await persist(state);
   realtimeReady=true;realtimeStatus='Live sync is on';render();
  }else if(result.status==='needs-migration'){
   realtimeReady=false;realtimeStatus='Your secure account is ready. Choose the device containing the newest Relay information once.';render();
