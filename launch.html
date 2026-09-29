@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1b2b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Relay">
+  <meta name="description" content="Your ministry, thoughtfully connected. Relationships, calling courses, reminders, and support.">
+  <link rel="apple-touch-icon" sizes="180x180" href="relay-icon-180.png?v=20260918">
+  <link rel="icon" href="relay-icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css?v=20260928-guided-journal">
+  <link rel="stylesheet" href="polish.css?v=20260925-voyage-driving">
+  <title>Relay · Ministry at the helm</title>
+</head>
+<body>
+  <div class="app-shell" id="app" data-wing="helm">
+    <main id="main" tabindex="-1"></main>
+    <nav class="dock" aria-label="Main navigation"></nav>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </div>
+  <dialog id="sheet" aria-labelledby="sheet-title"></dialog>
+  <script>
+    (() => {
+      const showStartupError = message => {
+        const main = document.querySelector('#main');
+        if (!main || main.children.length || main.textContent.trim()) return;
+        main.innerHTML = '<section style="margin:calc(env(safe-area-inset-top) + 48px) 24px 24px;padding:24px;border:1px solid #dbae5f;border-radius:18px;background:#12283b;color:#f7f0df;font:17px/1.5 system-ui"><h1 style="font-size:24px;margin:0 0 12px">Relay could not finish opening</h1><p style="margin:0 0 12px">Your records have not been deleted.</p><p id="startup-error-detail" style="color:#d5dfeb;overflow-wrap:anywhere"></p><p style="margin:16px 0 0"><a style="color:#e4b65e" href="./repair.html?v=20260929-safari-recovery2">Repair Relay again</a></p></section>';
+        document.querySelector('#startup-error-detail').textContent = message || 'Safari stopped the app before the first screen could load.';
+      };
+      window.addEventListener('error', event => showStartupError(event.message || 'A required Relay file could not load.'));
+      window.addEventListener('unhandledrejection', event => showStartupError(event.reason?.message || String(event.reason || 'Relay startup failed.')));
+      window.setTimeout(() => showStartupError('Relay did not finish loading within 8 seconds.'), 8000);
+    })();
+    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+      navigator.serviceWorker.register('./sw.js?v=20260929-safari-recovery2').then(registration => registration.update()).catch(() => {});
+    }
+  </script>
+  <script type="module" src="app.mjs?v=20260929-safari-recovery2"></script>
+</body>
+</html>
