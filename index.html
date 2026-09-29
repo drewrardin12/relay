@@ -23,10 +23,21 @@
   </div>
   <dialog id="sheet" aria-labelledby="sheet-title"></dialog>
   <script>
+    (() => {
+      const showStartupError = message => {
+        const main = document.querySelector('#main');
+        if (!main || main.children.length || main.textContent.trim()) return;
+        main.innerHTML = '<section style="margin:calc(env(safe-area-inset-top) + 48px) 24px 24px;padding:24px;border:1px solid #dbae5f;border-radius:18px;background:#12283b;color:#f7f0df;font:17px/1.5 system-ui"><h1 style="font-size:24px;margin:0 0 12px">Relay could not finish opening</h1><p style="margin:0 0 12px">Your records have not been deleted.</p><p id="startup-error-detail" style="color:#d5dfeb;overflow-wrap:anywhere"></p><p style="margin:16px 0 0"><a style="color:#e4b65e" href="./repair.html?v=20260929-safari-recovery2">Repair Relay again</a></p></section>';
+        document.querySelector('#startup-error-detail').textContent = message || 'Safari stopped the app before the first screen could load.';
+      };
+      window.addEventListener('error', event => showStartupError(event.message || 'A required Relay file could not load.'));
+      window.addEventListener('unhandledrejection', event => showStartupError(event.reason?.message || String(event.reason || 'Relay startup failed.')));
+      window.setTimeout(() => showStartupError('Relay did not finish loading within 8 seconds.'), 8000);
+    })();
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-      navigator.serviceWorker.register('./sw.js?v=20260929-recovery').then(registration => registration.update()).catch(() => {});
+      navigator.serviceWorker.register('./sw.js?v=20260929-safari-recovery2').then(registration => registration.update()).catch(() => {});
     }
   </script>
-  <script type="module" src="app.mjs?v=20260929-manifest-repair"></script>
+  <script type="module" src="app.mjs?v=20260929-safari-recovery2"></script>
 </body>
 </html>
