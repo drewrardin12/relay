@@ -21,7 +21,7 @@ import {financePlan,renderFinance} from './finance-plan.mjs';
 import {mergeGivingReports,supportEstimate,giftCategory} from './finance.mjs';
 import {tideContext} from "./tide-presentation.mjs";
 import {reconcileTides} from "./tide-reconciliation.mjs";
-import {loadWorkingCopy,persist,exportData,parseImport,readExisting,localDatabaseReadTimedOut} from './store.mjs?v=20260929-safari-database';
+import {loadWorkingCopy,persist,exportData,parseImport,readExisting,localDatabaseReadTimedOut} from './store.mjs?v=20260929-safari-database2';
 import {VERSES} from './seed.mjs';
 import {US_STATE_PATHS} from './us-map.mjs';
 import {changedSupportPeriods} from './domain.mjs';

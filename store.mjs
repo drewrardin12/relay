@@ -24,6 +24,7 @@ export function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s?.v
 export async function loadWorkingCopy(){
  if(typeof indexedDB==='undefined')return load();
  const saved=await readLocalCopy();
+ if(localDatabaseReadTimedOut())return load();
  if(saved){if(saved.version!==1||!Array.isArray(saved.contacts)||!Array.isArray(saved.logs))throw Error('The local database copy is invalid. Restore an exported backup.');return saved;}
  const legacy=load();await writeLocalCopy(legacy);
  const verified=await readLocalCopy();if(JSON.stringify(verified)!==JSON.stringify(legacy))throw Error('Local storage migration could not be verified.');
