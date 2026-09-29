@@ -6,4 +6,5 @@ export const consolidateExactDuplicates=s=>s;
 export const correctVoyageOnlyChurches=s=>s;
 export const correctBrianPetrick=s=>s;
 export const correctReviewedPastors=s=>s;
+export const applyManifestPeopleCleanup=s=>s;
 export const applyEmailIdentityReviews=s=>s;
