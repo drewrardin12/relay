@@ -21,7 +21,7 @@ import {financePlan,renderFinance} from './finance-plan.mjs';
 import {mergeGivingReports,supportEstimate,giftCategory} from './finance.mjs';
 import {tideContext} from "./tide-presentation.mjs";
 import {reconcileTides} from "./tide-reconciliation.mjs";
-import {loadWorkingCopy,persist,exportData,parseImport,readExisting,localDatabaseReadTimedOut} from './store.mjs?v=20260929-safari-database2';
+import {loadWorkingCopy,persist,exportData,parseImport,readExisting,localDatabaseReadTimedOut} from './store.mjs?v=20260929-safari-no-reload';
 import {VERSES} from './seed.mjs';
 import {US_STATE_PATHS} from './us-map.mjs';
 import {changedSupportPeriods} from './domain.mjs';
@@ -609,15 +609,3 @@ function showStartupPrompts(){
 }
 startRealtimeSync();
 if(startupSaveFailed)toast('Browser storage is full. Your saved copy is intact; export a backup before editing.');
-if('serviceWorker'in navigator&&location.protocol!=='file:'){
- let refreshing=false;
- navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!refreshing){refreshing=true;location.reload();}});
- navigator.serviceWorker.register('./sw.js').then(registration=>{
-  registration.update();
-  if(registration.waiting)registration.waiting.postMessage({type:'SKIP_WAITING'});
-  registration.addEventListener('updatefound',()=>{
-   const worker=registration.installing;
-   worker?.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)worker.postMessage({type:'SKIP_WAITING'});});
-  });
- }).catch(()=>{});
-}
