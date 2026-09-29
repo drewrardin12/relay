@@ -5,7 +5,7 @@ import {FAMILY_DATES} from './calendar-dates.mjs';
 import {OPEN_CALENDAR} from './open-calendar.mjs';
 import {financeDefaults,financePlan} from './finance-plan.mjs';
 import {giftCategory} from './finance.mjs';
-import {readLocalCopy,writeLocalCopy} from './local-database.mjs';
+import {readLocalCopy,writeLocalCopy,localDatabaseReadTimedOut} from './local-database.mjs';
 import {recoverCoordinates} from './geocoding.mjs';
 import {brianPetrickRemovals,correctBrianPetrick,reviewedPastorRemovals,correctReviewedPastors,correctVoyageOnlyChurches,applyManifestPeopleCleanup} from './contact-corrections.mjs?v=20260929-manifest-repair';
 import {normalizeContact,fields,iso,phones} from './domain.mjs';
@@ -30,6 +30,7 @@ export async function loadWorkingCopy(){
  // Keep legacy localStorage and its backups untouched after verification.
  return verified;
 }
+export {localDatabaseReadTimedOut};
 export function persist(state){consolidatePolarstepsMeetings(state);if(typeof indexedDB!=='undefined')return writeLocalCopy(state);localStorage.setItem(KEY,JSON.stringify(state));}
 export function exportData(state){const defaults=financeDefaults();return JSON.stringify({...state,calendarMeetings:state.calendarMeetings||CALENDAR_MEETINGS,calendarVacations:state.calendarVacations||CALENDAR_VACATIONS,familyDates:state.familyDates||FAMILY_DATES,openCalendar:state.openCalendar||OPEN_CALENDAR,financeSchedule:state.financeSchedule||defaults.schedule,financeAllowances:state.financeAllowances||defaults.allowances,financePlan:financePlan(state).settings,gifts:state.gifts.map(g=>({...g,categoryOverride:g.categoryOverride||giftCategory(g)})),exportedAt:new Date().toISOString()},null,2);}
 export function parseImport(text){const s=JSON.parse(text);if(s.version!==1||!['contacts','logs','tides','meetings','events','gifts'].every(k=>Array.isArray(s[k])))throw new Error('Choose a Relay redesign backup. Your current app data can be read separately through its connection.');s.settings={yearlyGoal:70000,showNoNumbers:false,...s.settings};s.mode='working-copy';return s;}

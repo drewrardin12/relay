@@ -21,7 +21,7 @@ import {financePlan,renderFinance} from './finance-plan.mjs';
 import {mergeGivingReports,supportEstimate,giftCategory} from './finance.mjs';
 import {tideContext} from "./tide-presentation.mjs";
 import {reconcileTides} from "./tide-reconciliation.mjs";
-import {loadWorkingCopy,persist,exportData,parseImport,readExisting} from './store.mjs?v=20260929-manifest-repair';
+import {loadWorkingCopy,persist,exportData,parseImport,readExisting,localDatabaseReadTimedOut} from './store.mjs?v=20260929-safari-database';
 import {VERSES} from './seed.mjs';
 import {US_STATE_PATHS} from './us-map.mjs';
 import {changedSupportPeriods} from './domain.mjs';
@@ -37,7 +37,7 @@ let realtimeBusy=false,realtimeStatus='Checking your Relay account…',realtimeR
 const RELAY_ACCOUNT_EMAIL=['rardins','abm'].join('.')+'@'+'gmail.com';
 let accountSyncTimer=null;
 let autoSyncTimer=null,autoSyncRunning=false,autoSyncQueued=false;
-recoverCoordinates(state.contacts);reconcileContactDesignations(state);try{await persist(state);}catch{startupSaveFailed=true;}
+recoverCoordinates(state.contacts);reconcileContactDesignations(state);if(!localDatabaseReadTimedOut()){try{await persist(state);}catch{startupSaveFailed=true;}}
 const app=document.querySelector('#app'),main=document.querySelector('#main'),sheet=document.querySelector('#sheet');
 const e=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>crypto.randomUUID();

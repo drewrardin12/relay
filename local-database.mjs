@@ -1,4 +1,5 @@
 let opening,queue=Promise.resolve();
+let readTimedOut=false;
 function database(){
  if(!opening)opening=new Promise((resolve,reject)=>{
   const request=indexedDB.open('relay-private-working-copy',1);
@@ -9,11 +10,16 @@ function database(){
  });return opening;
 }
 export async function readLocalCopy(){
- const db=await database();return new Promise((resolve,reject)=>{
+ const read=(async()=>{const db=await database();return new Promise((resolve,reject)=>{
   const tx=db.transaction('copies','readonly'),request=tx.objectStore('copies').get('active');let value;
   request.onsuccess=()=>{value=request.result;};tx.oncomplete=()=>resolve(value);tx.onabort=()=>reject(tx.error||Error('Local read failed.'));tx.onerror=()=>{};
- });
+ });})();
+ const timeout=new Promise(resolve=>setTimeout(()=>resolve(Symbol.for('relay-local-read-timeout')),5000));
+ const result=await Promise.race([read,timeout]);
+ if(result===Symbol.for('relay-local-read-timeout')){readTimedOut=true;return undefined;}
+ return result;
 }
+export const localDatabaseReadTimedOut=()=>readTimedOut;
 export function writeLocalCopy(state){
  const snapshot=structuredClone(state);
  const write=async()=>{const db=await database();await new Promise((resolve,reject)=>{
