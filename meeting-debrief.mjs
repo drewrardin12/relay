@@ -74,8 +74,8 @@ export function polarstepsCatchup(state,today=new Date().toISOString().slice(0,1
  return journalMeetings(state).filter(meeting=>meetingEnd(meeting)&&meetingEnd(meeting)>since&&meetingEnd(meeting)<today&&!meeting?.debrief?.polarstepsUpdated&&!['cancelled','postponed'].includes(meeting?.debrief?.status)).sort((a,b)=>meetingEnd(a).localeCompare(meetingEnd(b)));
 }
 
-export function ministryJournalStats(state){
- const debriefs=journalMeetings(state).map(meeting=>meeting.debrief).filter(d=>d?.completedAt&&d.status==='completed');
+export function ministryJournalStats(state,year=null){
+ const debriefs=journalMeetings(state).filter(meeting=>year===null||day(meeting.date).startsWith(`${year}-`)).map(meeting=>meeting.debrief).filter(d=>d?.completedAt&&d.status==='completed');
  const total=key=>debriefs.reduce((sum,d)=>sum+Number(d.outreachResults?.[key]??d[key]??0),0);
  return {visits:debriefs.length,sermons:debriefs.reduce((sum,d)=>sum+(d.sermons?.length||0),0),bibles:debriefs.reduce((sum,d)=>sum+Number(d.outreachResults?.biblesDistributed??d.biblesPassed??0),0),salvations:total('salvations'),doorsKnocked:total('doorsKnocked'),visitsMade:total('visitsMade'),gospelConversations:total('gospelConversations'),promises:total('promises'),visitors:total('visitors'),baptisms:total('baptisms')};
 }

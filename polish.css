@@ -9,7 +9,7 @@
 .anchor-results strong{font-size:13px;color:var(--text)}
 .anchor-results span,.anchor-results small{font-size:11px;color:var(--muted)}
 .calendar-meeting-details{text-align:left}
-.calendar-meeting-details{background:#dacdaf url('assets/parchment.svg');color:#202c34;border:1px solid #ddcdad;border-radius:18px;padding:22px}
+.calendar-meeting-details{background:#dacdaf url('parchment.svg');color:#202c34;border:1px solid #ddcdad;border-radius:18px;padding:22px}
 .calendar-meeting-details :is(.gold,.icon){color:#776039}
 .calendar-meeting-details .subtle{color:#665d4d}
 .calendar-meeting-details .divider{background:#7d6b4c4f}
@@ -60,6 +60,17 @@
 .reach-triplet strong{font:400 clamp(29px,7vw,42px)/1 var(--serif);color:var(--text);font-variant-numeric:tabular-nums}
 .reach-triplet>div:first-child strong{color:var(--reach-accent)}
 .reach-triplet span{font-size:10px;line-height:1.3;color:var(--muted)}
+.reach-field>summary{list-style:none;cursor:pointer;position:relative;z-index:1}
+.reach-field>summary::-webkit-details-marker{display:none}
+.reach-field .reach-dropdown{margin-left:auto;display:grid;place-items:center;transition:transform .2s ease}
+.reach-field[open] .reach-dropdown{transform:rotate(90deg)}
+.field-stats{border-top:1px solid var(--line);margin-top:20px;padding-top:14px;position:relative}
+.field-stats-head,.field-stat-row{display:grid;grid-template-columns:minmax(0,1fr) 64px 64px;gap:10px;align-items:center}
+.field-stats-head{padding:0 0 9px;color:var(--gold);font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+.field-stats-head strong,.field-stat-row strong{text-align:right;font-variant-numeric:tabular-nums}
+.field-stat-row{padding:10px 0;border-top:1px solid #ffffff0a}
+.field-stat-row span{font-size:11px;color:var(--muted)}
+.field-stat-row strong{font:400 22px/1 var(--serif);color:var(--text)}
 .reach-meter{height:3px;border-radius:3px;overflow:hidden;background:#ffffff08;margin-top:20px}
 .reach-meter i{display:block;height:100%;background:var(--reach-accent);border-radius:3px;opacity:.65}
 .reach-footnote{margin:14px 2px 0;line-height:1.6}
@@ -92,10 +103,10 @@
 .brand-name{line-height:1.05;margin-bottom:4px}
 .brand-sub{line-height:1;margin-bottom:0}
 .hero .topbar>.icon-btn .icon{width:21px;height:21px;stroke-width:1.7}
-.hero.helm{background-position:100% center;--hero:url('assets/helm.webp')}
-.hero.manifest{--hero:url('assets/manifest.webp')}
-.hero.voyage{--hero:url('assets/voyage.webp')}
-.hero.tides{--hero:url('assets/tides.webp')}
+.hero.helm{background-position:100% center;--hero:url('helm.webp')}
+.hero.manifest{--hero:url('manifest.webp')}
+.hero.voyage{--hero:url('voyage.webp')}
+.hero.tides{--hero:url('tides.webp')}
 .identity h1{font:400 42px/1.08 var(--serif);margin:13px 0 12px}
 .identity-actions{margin-top:0;margin-bottom:18px}
 .command .number,.command .mini-count{color:var(--text)}
