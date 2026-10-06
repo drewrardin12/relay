@@ -131,7 +131,7 @@ export function tideGroup(tide,now=new Date()){
 export function calendarEvents(state,day){
   const key=iso(day),md=key.slice(5);
   // Calendar end dates are exclusive for all-day ministry events.
-  const ministry=(state.calendarMeetings||CALENDAR_MEETINGS).map(m=>({...m,end:m.end>m.date?iso(addDays(m.end,-1)):m.date}));
+  const ministry=(state.calendarMeetings||CALENDAR_MEETINGS).filter(m=>m.calendarStatus!=='cancelled'&&!m.excludeFromStats).map(m=>({...m,end:m.calendarId?(m.end||m.date):(m.end>m.date?iso(addDays(m.end,-1)):m.date)}));
   const local=state.events.filter(e=>e.kind!=='meeting'||!e.manifestId);
   const all=[...local,...ministry,...(state.calendarVacations||CALENDAR_VACATIONS),...(state.openCalendar?.markers||OPEN_CALENDAR.markers),...(state.familyDates||FAMILY_DATES),...holidayDates(Number(key.slice(0,4)))];
   const found=all.filter(e=>e.annual?e.date<=key&&e.date.slice(5)===md:e.date<=key&&(e.end||e.date)>=key);

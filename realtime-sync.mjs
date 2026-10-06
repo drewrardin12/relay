@@ -92,6 +92,7 @@ export async function openRealtimeAccount(localState,{onRemote}={}){
   onRemote?.({key,rows});
  }));
  listeners.push(a.onSnapshot(metaRef(user.uid),snap=>{if(!snap.exists()||snap.metadata.hasPendingWrites)return;baseline.meta=snap.data().json||'{}';onRemote?.({meta:JSON.parse(baseline.meta)});}));
+ listeners.push(a.onSnapshot(recordsRef(user.uid,'integrations'),snap=>{const integrations={};snap.forEach(d=>{try{integrations[d.id]=JSON.parse(d.data().json);}catch{}});onRemote?.({integrations});}));
  active={uid:user.uid,baseline,stop:()=>listeners.forEach(stop=>stop()),setApplying:value=>{applying=value;}};
  return {status:'loaded',state:remote,email:user.email};
 }

@@ -1,6 +1,21 @@
 const day=value=>/^\d{4}-\d{2}-\d{2}$/.test(String(value||''));
 const clean=value=>String(value||'').trim();
 
+// Read-only schedule projection: Google updates never rewrite a questionnaire.
+export function calendarSchedule(state){
+ const calendar=state.calendarMeetings||[];
+ const identity=m=>String(m.googleEventId||m.id||'');
+ const linked=new Set(calendar.map(identity));
+ const local=(state.meetings||[]).filter(m=>!linked.has(identity(m)));
+ const active=calendar.filter(m=>m.calendarStatus!=='cancelled'&&!m.excludeFromStats);
+ return [...local,...active];
+}
+export function calendarTimeline(state){
+ const calendar=state.calendarMeetings||[],ids=new Set(calendar.map(m=>String(m.googleEventId||m.id||'')));
+ const events=(state.events||[]).filter(e=>e.kind!=='meeting'||(!e.manifestId&&!ids.has(String(e.googleEventId||e.id||''))));
+ return [...events,...calendarSchedule(state).map(m=>({...m,kind:'meeting'}))];
+}
+
 export function importCalendarMetadata(state,bundle){
  if(bundle?.kind!=='relay-calendar-metadata'||!Array.isArray(bundle.events))throw Error('Choose a Relay Calendar metadata file.');
  const next=structuredClone(state),contacts=new Set((next.contacts||[]).map(c=>c.id));
