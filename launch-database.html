@@ -32,12 +32,12 @@
       };
       window.addEventListener('error', event => showStartupError(event.message || 'A required Relay file could not load.'));
       window.addEventListener('unhandledrejection', event => showStartupError(event.reason?.message || String(event.reason || 'Relay startup failed.')));
-      window.setTimeout(() => showStartupError('Relay did not finish loading within 8 seconds.'), 8000);
+      window.setTimeout(() => showStartupError('Relay did not finish loading within 12 seconds.'), 12000);
     })();
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-      navigator.serviceWorker.register('./sw.js?v=20260929-safari-recovery2').then(registration => registration.update()).catch(() => {});
+      navigator.serviceWorker.register('./sw.js?v=20260929-safari-no-reload').then(registration => registration.update()).catch(() => {});
     }
   </script>
-  <script type="module" src="app.mjs?v=20260929-safari-database"></script>
+  <script type="module" src="app.mjs?v=20261006-journal-friends"></script>
 </body>
 </html>

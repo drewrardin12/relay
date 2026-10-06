@@ -15,9 +15,9 @@ export function debriefComplete(meeting){
 export function pendingMeetingDebriefs(state,today=new Date().toISOString().slice(0,10)){
  const enabled=day(state?.settings?.meetingDebriefEnabledAt||today);
  return journalMeetings(state).filter(meeting=>{
-  const ended=meetingEnd(meeting),snoozed=day(meeting?.debrief?.snoozedUntil);
-  return ended&&ended>=enabled&&ended<today&&!debriefComplete(meeting)&&(!snoozed||snoozed<=today);
- }).sort((a,b)=>meetingEnd(a).localeCompare(meetingEnd(b)));
+  const started=day(meeting?.date),snoozed=day(meeting?.debrief?.snoozedUntil);
+  return started&&started>=enabled&&started<=today&&!debriefComplete(meeting)&&(!snoozed||snoozed<=today);
+ }).sort((a,b)=>day(a.date).localeCompare(day(b.date)));
 }
 
 export function pastMeetingDebriefs(state,today=new Date().toISOString().slice(0,10)){
