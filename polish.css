@@ -198,6 +198,16 @@
 .weekly-message{margin:18px 0}
 .weekly-message h3,.relay-message h3{margin-top:0}
 .relay-message p{white-space:pre-wrap;font-size:11px;line-height:1.6}
+/* Keep the page and sheets within the viewport; retain vertical scrolling. */
+html,body{max-width:100%;overflow-x:hidden}
+.app-shell{width:100%;max-width:540px;min-width:0;overflow-wrap:anywhere}
+main,.page,.form,dialog{min-width:0;max-width:100%;overflow-wrap:anywhere}
+dialog{max-width:min(100%,540px);overflow-x:hidden;overflow-y:auto;overscroll-behavior-x:none}
+.form .field-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+.form label,.form input,.form select,.form textarea,.row>*,.sheet-header>*,.topbar>*{min-width:0;max-width:100%}
+.form input:not([type=checkbox]),.form select,.form textarea{box-sizing:border-box;max-width:100%}
+.micro-toolbar,.form .submit-row,.years{flex-wrap:wrap}
+@media(max-width:420px){.form .field-row:has(input[type=date]){grid-template-columns:minmax(0,1fr)}}
 .contact-menu .secondary+.secondary{margin-top:9px}
 @media(max-width:620px){.directory-filter-chips{display:none}.directory-filter-select{display:block}}
 @media(max-width:360px){.voyage-contact-actions{grid-template-columns:minmax(0,1fr) 76px 48px;gap:7px}.voyage-contact-actions .contact-alternatives{min-width:0;gap:9px;padding:10px}.voyage-contact-actions .contact-directions{width:48px}}
