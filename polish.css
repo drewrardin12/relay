@@ -199,6 +199,10 @@
 .weekly-message h3,.relay-message h3{margin-top:0}
 .relay-message p{white-space:pre-wrap;font-size:11px;line-height:1.6}
 /* Keep the page and sheets within the viewport; retain vertical scrolling. */
+.form .outcome[data-result=notinterested]{background:#792e3633;border-color:#dc7777;color:#ffc2c2}
+.form .outcome[data-result=notinterested] .icon{color:#ef9292}
+.form .outcome[data-result=notinterested]:has(input:checked){background:#9a394466;border-color:#ffaaaa}
+.not-interested-control,.not-interested-status{color:#ee9494;border-color:#c06e6e80}
 html,body{max-width:100%;overflow-x:hidden}
 .app-shell{width:100%;max-width:540px;min-width:0;overflow-wrap:anywhere}
 main,.page,.form,dialog{min-width:0;max-width:100%;overflow-wrap:anywhere}
