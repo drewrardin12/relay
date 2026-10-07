@@ -57,6 +57,15 @@ export function phones(contact){return [...new Set(fields(contact.phone).concat(
 export function emails(contact){return [...new Set(fields(contact.email).concat(fields(contact.church_email)))];}
 export function callable(contact,showNoNumbers=false){return showNoNumbers||phones(contact).length>0;}
 export function lastLog(contact,logs){return logs.filter(l=>l.contactId===contact.id&&!['reminder','imported'].includes(l.type)).sort((a,b)=>+date(b.date)-+date(a.date)||String(b.createdAt||b.id).localeCompare(String(a.createdAt||a.id)))[0];}
+export function latestLogIndex(logs){
+ const index=new Map();
+ for(const log of logs){
+  if(['reminder','imported'].includes(log.type))continue;
+  const previous=index.get(log.contactId);
+  if(!previous||(+date(log.date)-+date(previous.date)||String(log.createdAt||log.id).localeCompare(String(previous.createdAt||previous.id)))>0)index.set(log.contactId,log);
+ }
+ return index;
+}
 export function lastAttempt(contact,logs,now=new Date()){return lastLog(contact,logs.filter(l=>ATTEMPTS.has(l.type)&&l.date<=iso(now)));}
 export function haversine(a,b){
   if(![a.lat,a.lng,b.lat,b.lng].every(n=>n!==null&&n!==''&&Number.isFinite(Number(n))))return Infinity;
@@ -66,10 +75,11 @@ export function haversine(a,b){
 }
 export function courseContacts(contacts,course,logs,showNoNumbers=false){
   const anchor=course.center||contacts.find(c=>c.id===course.anchorId);
+  const latest=course.result||course.type?latestLogIndex(logs):new Map();
   return contacts.filter(c=>c.wing==='voyage'&&c.contactType!=='Friends & family'&&callable(c,showNoNumbers)&&!c.notInterested)
     .filter(c=>course.mode==='state'?c.state===course.state:anchor&&haversine(anchor,c)<=Number(course.radius))
-    .filter(c=>!course.result||lastLog(c,logs)?.result===course.result)
-    .filter(c=>!course.type||lastLog(c,logs)?.type===course.type)
+    .filter(c=>!course.result||latest.get(c.id)?.result===course.result)
+    .filter(c=>!course.type||latest.get(c.id)?.type===course.type)
     .sort((a,b)=>course.mode==='nearby'&&anchor?haversine(anchor,a)-haversine(anchor,b)||(a.pastor||a.church).localeCompare(b.pastor||b.church):(a.pastor||a.church).localeCompare(b.pastor||b.church));
 }
 const PERIODS={weekly:52,'bi-weekly':26,monthly:12,'bi-monthly':6,quarterly:4,'bi-annual':2,annually:1,annual:1};
