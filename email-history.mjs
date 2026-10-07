@@ -1,3 +1,4 @@
+import {isFriend} from './recipient-tools.mjs';
 export const MAILBOX='';
 const address=v=>String(v||'').trim().toLowerCase();
 const valid=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
@@ -19,6 +20,7 @@ export function reconcileEmails(state){
    const matches=state.contacts.filter(c=>contactEmails(c).includes(email));
    if(matches.length!==1){if(!pending.has(email))pending.set(email,{email,count:0,ambiguous:matches.length>1,subject:m.subject});pending.get(email).count++;continue;}
    const c=matches[0],id='gmail:'+m.id+':'+c.id;
+   if(isFriend(c))continue;
    if(!state.logs.some(l=>l.id===id))state.logs.push({id,contactId:c.id,type:'email',result:sent?'sent':'received',date:m.date,details:m.subject||'(No subject)',source:'gmail',mailbox:MAILBOX,emailMessageId:m.id,emailAddress:email});
   }
  }
