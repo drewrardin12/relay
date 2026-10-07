@@ -47,6 +47,18 @@ export function importCalendarMetadata(state,bundle){
    delete found.cancelledAt;
    if(found.classificationConfirmed!==true)delete found.excludeFromStats;
    if(!matched){found.excludeFromStats=true;review.push({googleEventId,title:calendarFields.title,reason:'choose the correct Relay contact'});summary.unmatched++;}
+   if(matched&&!found.debrief&&!found.debriefDraft){
+    const journals=next.calendarMeetings.filter(m=>m!==found&&!m.googleEventId&&!m.excludeFromStats&&m.contactId===contactId&&m.date===found.date&&(m.end||m.date)===(found.end||found.date)&&m.debrief?.completedAt);
+    if(journals.length===1){
+     const journal=journals[0];
+     // Retain the complete source record for recovery. The Calendar row is
+     // the active journal so subsequent automatic dates still update it.
+     const metadata=new Set(['id','contactId','title','date','end','time','location','kind','excludeFromStats','classificationConfirmed','source','googleEventId','calendarId','calendarStatus','calendarUpdatedAt']);
+     for(const [key,value] of Object.entries(journal))if(!metadata.has(key)&&found[key]===undefined)found[key]=structuredClone(value);
+     found.journalSourceId=journal.id;
+     journal.excludeFromStats=true;journal.classificationConfirmed=true;journal.supersededBy=found.id;
+    }
+   }
    before===JSON.stringify(calendarFields)?summary.unchanged++:summary.updated++;
   }else{
    next.calendarMeetings.push({id:'gcal:'+googleEventId,...calendarFields,contactId:matched?contactId:'',excludeFromStats:!matched});summary.added++;
