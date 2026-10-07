@@ -1,6 +1,6 @@
 import {icon} from './icons.mjs?v=20261007-no-family-history';
 import {prepareDriveSignIn,authorizeDrive,driveAuthorized,disconnectDrive,syncWorkingCopy,makeAccountMaster,payloadHash,privateHostActive,readPrivateEmailHistory} from './drive-sync.mjs?v=20260928-account-master';
-import {prepareRealtimeSync,realtimeUser,signInRealtimePassword,sendRealtimePasswordReset,signOutRealtime,openRealtimeAccount,establishRealtimeAccount,scheduleRealtimeSave} from './realtime-sync.mjs?v=20260929-password-login';
+import {prepareRealtimeSync,realtimeUser,signInRealtimePassword,sendRealtimePasswordReset,signOutRealtime,openRealtimeAccount,establishRealtimeAccount,scheduleRealtimeSave} from './realtime-sync.mjs?v=20261007-single-read';
 import {applyRecipientUpdate} from './recipient-import.mjs';
 import {previewContactCleanup,applyContactCleanup} from './contact-cleanup.mjs';
 import {isFriend,recipientEmails,contactFilter} from './recipient-tools.mjs?v=20260929-friends-family';

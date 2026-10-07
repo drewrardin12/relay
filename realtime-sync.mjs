@@ -71,7 +71,7 @@ function cloudMeta(state){
  const data={};for(const [key,value] of Object.entries(state))if(!ARRAY_KEYS.includes(key)&&!['cloudSync','realtimeSync','recents','course','exportedAt'].includes(key))data[key]=value;
  return data;
 }
-async function loadCollection(uid,key){const snap=await api.getDocs(recordsRef(uid,key)),rows=[];snap.forEach(d=>{try{rows.push(JSON.parse(d.data().json));}catch{}});return rows;}
+function collectionRows(snap){const rows=[];snap.forEach(d=>{rows.push(JSON.parse(d.data().json));});return rows;}
 async function commitChunks(ops){for(let i=0;i<ops.length;i+=400){const batch=api.writeBatch(db);for(const op of ops.slice(i,i+400))op(batch);await batch.commit();}}
 
 export async function openRealtimeAccount(localState,{onRemote}={}){
@@ -81,19 +81,32 @@ export async function openRealtimeAccount(localState,{onRemote}={}){
  const metaSnap=await a.getDoc(metaRef(user.uid));
  if(!metaSnap.exists())return {status:'needs-migration',email:user.email};
  const remote=clone(localState),meta=metaSnap.data();Object.assign(remote,JSON.parse(meta.json||'{}'));
- const loaded=await Promise.all(ARRAY_KEYS.map(key=>loadCollection(user.uid,key)));ARRAY_KEYS.forEach((key,i)=>{remote[key]=loaded[i];});
  remote.realtimeSync={email:user.email,connectedAt:new Date().toISOString()};
- const baseline={meta:meta.json||'{}',records:Object.fromEntries(ARRAY_KEYS.map(key=>[key,localRecords(remote,key)]))};
- let applying=false;
- const listeners=ARRAY_KEYS.map(key=>a.onSnapshot(recordsRef(user.uid,key),snap=>{
-  if(applying||snap.metadata.hasPendingWrites)return;
-  const rows=[];snap.forEach(d=>{try{rows.push(JSON.parse(d.data().json));}catch{}});
-  baseline.records[key]=new Map(snap.docs.map(d=>[d.id,d.data().json]));
-  onRemote?.({key,rows});
- }));
+ const baseline={meta:meta.json||'{}',records:{}},listeners=[];
+ let applying=false,hydrated=false;
+ const pending=new Map();
+ // The first server-confirmed snapshot is both initial load and subscription.
+ // Never accept an incomplete cached query as the authoritative account copy.
+ try{await Promise.all(ARRAY_KEYS.map(key=>new Promise((resolve,reject)=>{
+  let initial=true;
+  listeners.push(a.onSnapshot(recordsRef(user.uid,key),{includeMetadataChanges:true},snap=>{
+   if(snap.metadata.hasPendingWrites||snap.metadata.fromCache)return;
+   try{
+    const rows=collectionRows(snap);
+    if(initial){initial=false;remote[key]=rows;baseline.records[key]=new Map(snap.docs.map(d=>[d.id,d.data().json]));resolve();return;}
+    if(applying)return;
+    const previous=baseline.records[key];
+    if(previous?.size===snap.docs.length&&snap.docs.every(d=>previous.get(d.id)===d.data().json))return;
+    baseline.records[key]=new Map(snap.docs.map(d=>[d.id,d.data().json]));
+    if(!hydrated)pending.set(key,rows);else onRemote?.({key,rows});
+   }catch(error){if(initial)reject(error);}
+  },error=>{if(initial)reject(error);}));
+ })));}catch(error){listeners.forEach(stop=>stop());throw error;}
+ for(const [key,rows] of pending)remote[key]=rows;
  listeners.push(a.onSnapshot(metaRef(user.uid),snap=>{if(!snap.exists()||snap.metadata.hasPendingWrites)return;baseline.meta=snap.data().json||'{}';onRemote?.({meta:JSON.parse(baseline.meta)});}));
  listeners.push(a.onSnapshot(recordsRef(user.uid,'integrations'),snap=>{const integrations={};snap.forEach(d=>{try{integrations[d.id]=JSON.parse(d.data().json);}catch{}});onRemote?.({integrations});}));
  active={uid:user.uid,baseline,stop:()=>listeners.forEach(stop=>stop()),setApplying:value=>{applying=value;}};
+ hydrated=true;
  return {status:'loaded',state:remote,email:user.email};
 }
 
