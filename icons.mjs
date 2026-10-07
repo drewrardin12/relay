@@ -1,4 +1,7 @@
 const paths={
+ 'text-sent':'<path d="M3 4h18v13H8l-5 4zM8 10h8m-3-3 3 3-3 3"/>',
+ 'text-received':'<path d="M3 4h18v13H8l-5 4zM16 10H8m3-3-3 3 3 3"/>',
+ 'text-conversation':'<path d="M3 4h18v13H8l-5 4zM7 8h10m-2-2 2 2-2 2M17 13H7m2-2-2 2 2 2"/>',
  // Official Lucide Pencil icon, ISC license (lucide-LICENSE.txt).
  edit:'<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>',
  helm:'<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 1v9m0 4v9M1 12h9m4 0h9M4.2 4.2l6.4 6.4m2.8 2.8 6.4 6.4M4.2 19.8l6.4-6.4m2.8-2.8 6.4-6.4"/>',
