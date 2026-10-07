@@ -6,7 +6,11 @@ export function calendarSchedule(state){
  const calendar=state.calendarMeetings||[];
  const identity=m=>String(m.googleEventId||m.id||'');
  const linked=new Set(calendar.map(identity));
- const local=(state.meetings||[]).filter(m=>!linked.has(identity(m)));
+ const sameVisit=(a,b)=>a.contactId&&a.contactId===b.contactId&&a.date===b.date&&(a.end||a.date)===(b.end||b.date)&&(!a.time||!b.time||a.time===b.time);
+ // Older manually saved schedules have random IDs. Hide their mirror only
+ // when one Calendar occurrence identifies the visit unambiguously. Keep the
+ // original records (and every questionnaire) intact for editing/recovery.
+ const local=(state.meetings||[]).filter(m=>!linked.has(identity(m))&&calendar.filter(c=>sameVisit(m,c)).length!==1);
  const active=calendar.filter(m=>m.calendarStatus!=='cancelled'&&!m.excludeFromStats);
  return [...local,...active];
 }

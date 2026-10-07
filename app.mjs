@@ -16,7 +16,7 @@ import {locationLabel,visitedStates,contactPhoto,journalPhoto} from './contact-p
 import {journalMeetings,pendingMeetingDebriefs,pastMeetingDebriefs,snoozeMeetingDebriefById,saveMeetingDebrief,applyDebriefToContact,polarstepsCatchup,ministryJournalStats,latestJourneyMeeting} from './meeting-debrief.mjs?v=20261006-journal-start';
 import {importDeviceActivity} from './device-activity.mjs?v=20260920';
 import {dataHealth} from './data-health.mjs?v=20260921';
-import {importCalendarMetadata,calendarSchedule,calendarTimeline} from './calendar-sync.mjs?v=20261006-auto';
+import {importCalendarMetadata,calendarSchedule,calendarTimeline} from './calendar-sync.mjs?v=20261007-reconcile';
 import {financePlan,renderFinance} from './finance-plan.mjs';
 import {mergeGivingReports,supportEstimate,giftCategory} from './finance.mjs';
 import {tideContext} from "./tide-presentation.mjs";
