@@ -234,3 +234,4 @@ svg:has(>path[d^="M21.174 6.812"]) {stroke-width:2;}
 .result-noanswer2,.result-badnumber,.result-notinterested{color:#ffc2c2;background:#572a32;border-color:#dc7777}
 .bad-number-control{color:#ffc2c2!important;border-color:#dc7777!important}
 .form .outcome[data-result=badnumber]{--result-tint:#dc7777}
+.edit-contact-tools{display:grid;gap:12px;margin-bottom:24px}.edit-contact-icons{display:flex;gap:12px}.edit-contact-icons button{width:52px;height:52px;min-height:52px;padding:12px;flex:none}.edit-contact-icons svg{width:24px;height:24px}
