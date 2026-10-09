@@ -8,3 +8,11 @@ export function contactVcard(c,phones,emails){
  rows.push('END:VCARD');return rows.join('\r\n')+'\r\n';
 }
 export function callSummary(logs,id){const calls=logs.filter(l=>l.contactId===id&&l.type==='call');return {count:calls.length,last:calls.sort((a,b)=>String(b.createdAt||b.date).localeCompare(String(a.createdAt||a.date)))[0]};}
+export function retireBadNumber(c,number,date){
+ const key=s=>String(s||'').replace(/\D/g,'').replace(/^1(?=\d{10}$)/,'');
+ const values=v=>Array.isArray(v)?v:String(v||'').split(/[\n,;]/).map(s=>s.trim()).filter(Boolean);
+ c.retiredNumbers=[...(c.retiredNumbers||[]),{number,date,reason:'Bad number'}];
+ c.phone=values(c.phone).filter(p=>key(p)!==key(number));
+ c.cell=values(c.cell).filter(p=>key(p)!==key(number));
+ c.badNumber=false;
+}
