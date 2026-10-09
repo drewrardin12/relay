@@ -76,7 +76,7 @@ export function haversine(a,b){
 export function courseContacts(contacts,course,logs,showNoNumbers=false){
   const anchor=course.center||contacts.find(c=>c.id===course.anchorId);
   const latest=course.result||course.type?latestLogIndex(logs):new Map();
-  return contacts.filter(c=>c.wing==='voyage'&&c.contactType!=='Friends & family'&&callable(c,showNoNumbers)&&!c.notInterested)
+  return contacts.filter(c=>c.wing==='voyage'&&!isFriend(c)&&callable(c,showNoNumbers)&&!c.notInterested)
     .filter(c=>course.mode==='state'?c.state===course.state:anchor&&haversine(anchor,c)<=Number(course.radius))
     .filter(c=>!course.result||latest.get(c.id)?.result===course.result)
     .filter(c=>!course.type||latest.get(c.id)?.type===course.type)
@@ -157,3 +157,4 @@ export function normalizeContact(c,wing,now=new Date()){
 }
 export const MONEY=new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
 export const PRECISE=new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2});
+import {isFriend} from './recipient-tools.mjs';
