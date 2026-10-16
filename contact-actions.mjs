@@ -14,5 +14,6 @@ export function retireBadNumber(c,number,date){
  c.retiredNumbers=[...(c.retiredNumbers||[]),{number,date,reason:'Bad number'}];
  c.phone=values(c.phone).filter(p=>key(p)!==key(number));
  c.cell=values(c.cell).filter(p=>key(p)!==key(number));
+ if(key(c.preferredPhone)===key(number))c.preferredPhone='';
  c.badNumber=false;
 }

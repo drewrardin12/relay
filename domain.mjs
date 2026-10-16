@@ -53,7 +53,7 @@ export function missedRelays(contact,logs,now=new Date()) {
   return missed;
 }
 export function fields(value){return Array.isArray(value)?value.map(String).map(s=>s.trim()).filter(Boolean):String(value||'').split(/[,;\n]+/).map(s=>s.trim()).filter(Boolean);}
-export function phones(contact){return [...new Set(fields(contact.phone).concat(fields(contact.cell)))].filter(p=>p.replace(/\D/g,'').length>=7);}
+export function phones(contact){const seen=new Set();return fields(contact.preferredPhone).concat(fields(contact.phone),fields(contact.cell)).filter(p=>{const key=p.replace(/\D/g,'').replace(/^1(?=\d{10}$)/,'');if(key.length<7||seen.has(key))return false;seen.add(key);return true;});}
 export function emails(contact){return [...new Set(fields(contact.email).concat(fields(contact.church_email)))];}
 export function callable(contact,showNoNumbers=false){return showNoNumbers||phones(contact).length>0;}
 export function lastLog(contact,logs){return logs.filter(l=>l.contactId===contact.id&&!['reminder','imported'].includes(l.type)).sort((a,b)=>+date(b.date)-+date(a.date)||String(b.createdAt||b.id).localeCompare(String(a.createdAt||a.id)))[0];}
