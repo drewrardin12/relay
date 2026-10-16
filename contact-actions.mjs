@@ -1,6 +1,12 @@
 const esc=s=>String(s||'').replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/;/g,'\\;').replace(/,/g,'\\,');
+export function contactNameParts(c){
+ if(c.firstName!==undefined||c.lastName!==undefined)return {firstName:String(c.firstName||'').trim(),lastName:String(c.lastName||'').trim()};
+ const parts=String(c.pastor||c.name||'').trim().split(/\s+/).filter(Boolean);
+ return {firstName:parts.length>1?parts.slice(0,-1).join(' '):(parts[0]||''),lastName:parts.length>1?parts.at(-1):''};
+}
 export function contactVcard(c,phones,emails){
- const rows=['BEGIN:VCARD','VERSION:3.0',`FN:${esc(c.pastor||c.name||c.church)}`,`N:;${esc(c.pastor||c.name||c.church)};;;`];
+ const {firstName,lastName}=contactNameParts(c);
+ const rows=['BEGIN:VCARD','VERSION:3.0',`FN:${esc(c.pastor||c.name||[firstName,lastName].filter(Boolean).join(' ')||c.church)}`,`N:${esc(lastName)};${esc(firstName)};;;`];
  if(c.church)rows.push(`ORG:${esc(c.church)}`);
  for(const p of phones(c))rows.push(`TEL;TYPE=VOICE:${esc(p)}`);
  for(const email of emails(c))rows.push(`EMAIL;TYPE=INTERNET:${esc(email)}`);
