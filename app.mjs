@@ -3,7 +3,7 @@ import {icon} from './icons.mjs?v=20261007-no-family-history';
 import {prepareDriveSignIn,authorizeDrive,driveAuthorized,disconnectDrive,syncWorkingCopy,makeAccountMaster,payloadHash,privateHostActive,readPrivateEmailHistory} from './drive-sync.mjs?v=20260928-account-master';
 import {prepareRealtimeSync,realtimeUser,signInRealtimePassword,sendRealtimePasswordReset,signOutRealtime,openRealtimeAccount,establishRealtimeAccount,scheduleRealtimeSave} from './realtime-sync.mjs?v=20261007-single-read';
 import {applyRecipientUpdate} from './recipient-import.mjs';
-import {previewContactCleanup,applyContactCleanup} from './contact-cleanup.mjs';
+import {previewContactCleanup,applyContactCleanup} from './contact-cleanup.mjs?v=20261016-preserve-numbers';
 import {isFriend,recipientEmails,contactFilter} from './recipient-tools.mjs?v=20260929-friends-family';
 import {normalizeContact} from './domain.mjs';
 import {prepareSheetsSignIn,authorizeSheets,disconnectSheets,sheetsAuthorized,sheetsWriteAuthorized,readSheetsSnapshot,compareSheetContacts,saveReviewedCorrections,saveRecipients,readRecipients,applySheetRecipients} from './sheets-connection.mjs?v=20260918-recipient-load';

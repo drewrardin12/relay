@@ -24,7 +24,7 @@ function appendNote(current,note){
 }
 
 function mergeContact(target,source,reason){
- for(const key of ['phone','cell','email','church_email','groups'])target[key]=unique([...list(target[key]),...list(source[key])]);
+ for(const key of ['phone','cell','email','church_email','groups']){const values=[...list(target[key]),...list(source[key])];target[key]=unique(['phone','cell','email','church_email'].includes(key)?values.flatMap(value=>text(value).split(/[\n;,]+/).map(s=>s.trim()).filter(Boolean)):values);}
  for(const [key,value] of Object.entries(source)){
   if(['id','pastor','church','city','state','address','lat','lng','phone','cell','email','church_email','groups','notes'].includes(key))continue;
   if((target[key]===undefined||target[key]===null||target[key]===''||(Array.isArray(target[key])&&!target[key].length))&&value!==undefined&&value!==null&&value!=='')target[key]=structuredClone(value);
