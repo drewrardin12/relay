@@ -51,6 +51,11 @@ export function mergeGivingReports(state,bundle){
   if(i>=0){used.add(i);matched++;gifts[i]={...gifts[i],...provenance};if(!gifts[i].contactId&&incoming.contactId)gifts[i].contactId=incoming.contactId;}
   else {gifts.push({...incoming,...provenance,church_name:incoming.donor});used.add(gifts.length-1);added++;}
  }
+ const financeSchedule=[...(state.financeSchedule||[])];
+ for(const row of bundle.scheduleAdditions||[]){
+  if(!Array.isArray(row)||row.length!==4||!row[0]||!Number.isFinite(Number(row[1]))||Number(row[1])<=0||!Number.isInteger(Number(row[2]))||Number(row[2])<=0)throw Error('Invalid finance schedule addition; nothing imported');
+  if(!financeSchedule.some(existing=>normalized(existing[0])===normalized(row[0])))financeSchedule.push([row[0],Number(row[1]),Number(row[2]),row[3]||'Assumed']);
+ }
  const coverage=[...new Set([...(state.financeReview?.coverage||[]),...bundle.coverage])].sort();
- return {...state,gifts,...(bundle.calendarReview?{calendarReview:bundle.calendarReview}:{}),financeReview:{coverage,added,matched,unassigned:gifts.filter(g=>!g.contactId).length,importedAt:new Date().toISOString(),note:'Deposit dates and fund labels are source evidence, not confirmed support commitments. Missing months never count as zero.'}};
+ return {...state,gifts,financeSchedule,...(bundle.calendarReview?{calendarReview:bundle.calendarReview}:{}),financeReview:{coverage,added,matched,unassigned:gifts.filter(g=>!g.contactId).length,importedAt:new Date().toISOString(),note:'Deposit dates and fund labels are source evidence, not confirmed support commitments. Missing months never count as zero.'}};
 }
