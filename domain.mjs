@@ -1,4 +1,5 @@
 import {OPEN_CALENDAR} from './open-calendar.mjs';
+import {matchesArea} from './course-geometry.mjs';
 import {CALENDAR_VACATIONS} from './calendar-vacations.mjs';
 import {CALENDAR_MEETINGS} from './calendar-meetings.mjs';
 import {FAMILY_DATES,holidayDates} from './calendar-dates.mjs';
@@ -77,10 +78,11 @@ export function courseContacts(contacts,course,logs,showNoNumbers=false){
   const anchor=course.center||contacts.find(c=>c.id===course.anchorId);
   const latest=course.result||course.type?latestLogIndex(logs):new Map();
   return contacts.filter(c=>c.wing==='voyage'&&!isFriend(c)&&callable(c,showNoNumbers)&&!c.notInterested)
-    .filter(c=>course.mode==='state'?c.state===course.state:anchor&&haversine(anchor,c)<=Number(course.radius))
+    .filter(c=>course.mode==='route'?Boolean(course.positions?.[c.id]):course.mode==='area'?matchesArea(c,course):course.mode==='state'?c.state===course.state:anchor&&haversine(anchor,c)<=Number(course.radius))
+    .filter(c=>course.mode!=='route'||!course.aheadOnly||course.positions[c.id].along>=(course.progressAlong||0))
     .filter(c=>!course.result||latest.get(c.id)?.result===course.result)
     .filter(c=>!course.type||latest.get(c.id)?.type===course.type)
-    .sort((a,b)=>course.mode==='nearby'&&anchor?haversine(anchor,a)-haversine(anchor,b)||(a.pastor||a.church).localeCompare(b.pastor||b.church):(a.pastor||a.church).localeCompare(b.pastor||b.church));
+    .sort((a,b)=>course.mode==='route'?course.positions[a.id].along-course.positions[b.id].along||(a.pastor||a.church).localeCompare(b.pastor||b.church):course.mode==='nearby'&&anchor?haversine(anchor,a)-haversine(anchor,b)||(a.pastor||a.church).localeCompare(b.pastor||b.church):(a.pastor||a.church).localeCompare(b.pastor||b.church));
 }
 const PERIODS={weekly:52,'bi-weekly':26,monthly:12,'bi-monthly':6,quarterly:4,'bi-annual':2,annually:1,annual:1};
 export function changedSupportPeriods(contact,amount,cadence,effective){
