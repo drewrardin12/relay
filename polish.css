@@ -224,8 +224,8 @@ svg:has(>path[d^="M21.174 6.812"]) {stroke-width:2;}
 .contact-history.details>summary:before{content:'';width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg);flex-shrink:0}
 .contact-history.details[open]>summary:before{transform:rotate(45deg)}
 .contact-history.details[open]>summary{margin-bottom:14px}
-.log-save-top{position:sticky;top:0;z-index:5;background:var(--surface);padding:10px 0;border-bottom:1px solid var(--line)}
-.log-save-top button{min-height:52px}
+.log-save-top{position:sticky;top:0;z-index:5;background:var(--bg);padding:4px 0 12px;border:0;box-shadow:none}
+.log-save-top button{min-height:48px;border-radius:12px;box-shadow:none}
 .result-status{display:inline-block;font-size:12px;line-height:1.5;padding:5px 9px;margin:6px 5px 6px 0;border:1px solid var(--line);border-radius:10px;color:var(--text);background:var(--surface2);white-space:normal}
 .result-pastor,.result-completed,.result-conversation{color:#a6dfbd;background:#244936;border-color:#72ad93}
 .result-secretary,.result-received{color:#b6dcff;background:#203e58;border-color:#79a9cd}
