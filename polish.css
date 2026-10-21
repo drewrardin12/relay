@@ -287,3 +287,9 @@ svg:has(>path[d^="M21.174 6.812"]) {stroke-width:2;}
 .note-format-preview{margin:10px 0 0;padding:12px 14px;border-left:2px solid var(--line);color:var(--text);font-weight:400;font-size:12px;letter-spacing:normal;line-height:1.65;overflow-wrap:anywhere}
 .note-format-preview[hidden]{display:none}.note-format-preview strong{font-weight:700}.note-format-preview u{text-underline-offset:3px}
 .timeline-entry .plain-btn{margin-top:8px;min-height:38px}.contact-info-notes p{white-space:normal}
+.support-mosaic .amenity-available{background:var(--amenity-bg);border-color:var(--amenity-edge)}
+.amenity-lodging{--amenity-bg:#3d382b;--amenity-edge:#927846;--amenity-accent:#e6be76}
+.amenity-rv{--amenity-bg:#193e55;--amenity-edge:#447f9f;--amenity-accent:#8bcef0}
+.amenity-handouts{--amenity-bg:#254637;--amenity-edge:#52896a;--amenity-accent:#a1d6b4}
+.support-mosaic .amenity-available>svg,.support-mosaic .amenity-available h3,.support-mosaic .amenity-available p{color:var(--amenity-accent)}
+.support-mosaic .amenity-available .dot{background:var(--amenity-accent)}
