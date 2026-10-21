@@ -282,3 +282,8 @@ svg:has(>path[d^="M21.174 6.812"]) {stroke-width:2;}
 .lodging-card h3{font:400 24px var(--serif);margin:8px 0}.lodging-card p{font-size:12px;margin:8px 0;line-height:1.6}.lodging-card .lodging-notes{white-space:pre-wrap}.lodging-card .blue{color:#79baff}
 .lodging-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.lodging-actions>*{flex:1;text-align:center;min-height:42px}
 .lodging-edit>summary{color:var(--gold)}#lodging-place [role=status]>button{display:block;margin-top:10px}
+.note-format-toolbar{display:flex;gap:6px;margin:8px 0 0;padding:0;letter-spacing:normal}
+.note-format-toolbar button{display:grid;place-items:center;min-width:42px;min-height:38px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--gold);font-size:15px}
+.note-format-preview{margin:10px 0 0;padding:12px 14px;border-left:2px solid var(--line);color:var(--text);font-weight:400;font-size:12px;letter-spacing:normal;line-height:1.65;overflow-wrap:anywhere}
+.note-format-preview[hidden]{display:none}.note-format-preview strong{font-weight:700}.note-format-preview u{text-underline-offset:3px}
+.timeline-entry .plain-btn{margin-top:8px;min-height:38px}.contact-info-notes p{white-space:normal}
