@@ -273,3 +273,12 @@ svg:has(>path[d^="M21.174 6.812"]) {stroke-width:2;}
 .contact-history>button[data-action="log"]+.empty{margin-top:16px}
 .course-map-legend{flex-wrap:wrap;row-gap:8px}
 @media(max-width:420px){.form .submit-row{row-gap:10px}.course-mode-list button{gap:14px}}
+.lodging-door{display:flex;align-items:center;gap:8px;margin:14px 0 4px;color:var(--muted);font-size:11px;font-weight:400}
+.lodging-door .icon{width:17px;height:17px}
+.lodging-tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}.lodging-tools button{flex:1;white-space:nowrap;font-size:11px}
+.lodging-kind{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0;font-size:11px;color:var(--muted)}
+.lodging-kind select{background:var(--surface);color:var(--text);border:1px solid var(--line);padding:10px;border-radius:10px;max-width:65%}
+#lodging-map{height:320px;margin-bottom:16px}#sheet.course-map-expanded #lodging-map{height:calc(100dvh - 330px);min-height:300px}
+.lodging-card h3{font:400 24px var(--serif);margin:8px 0}.lodging-card p{font-size:12px;margin:8px 0;line-height:1.6}.lodging-card .lodging-notes{white-space:pre-wrap}.lodging-card .blue{color:#79baff}
+.lodging-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.lodging-actions>*{flex:1;text-align:center;min-height:42px}
+.lodging-edit>summary{color:var(--gold)}#lodging-place [role=status]>button{display:block;margin-top:10px}
