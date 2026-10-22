@@ -15,11 +15,11 @@ export function iosMapStyle(source){
   }
   if(layer.type==='line'){
    if(id==='waterway')p['line-color']='#19324c';
-   else if(/motorway.*inner|motorway_subtle/.test(id))p['line-color']='#958467';
-   else if(/motorway.*casing/.test(id))p['line-color']='#5f5648';
+   else if(/motorway.*inner|motorway_subtle/.test(id)){p['line-color']='#756b58';p['line-opacity']=.32;}
+   else if(/motorway.*casing/.test(id)){p['line-color']='#4b473f';p['line-opacity']=.25;}
    else if(/highway_major_inner/.test(id))p['line-color']='#686d76';
    else if(/highway_major_casing|highway_minor/.test(id))p['line-color']='#42474f';
-   else if(/boundary/.test(id)){p['line-color']='#a5b2c4';p['line-dasharray']=[4,3];p['line-opacity']=.8;}
+   else if(/boundary/.test(id)){p['line-color']='#e5edf9';p['line-dasharray']=[5,2];p['line-opacity']=1;p['line-width']=['interpolate',['linear'],['zoom'],3,1.6,7,2.2,12,2.8];}
    else p['line-color']='#414751';
   }
   if(layer.type==='symbol'&&p['text-color']){
