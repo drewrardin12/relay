@@ -15,6 +15,15 @@ export function googleMeetingLink(m,c={}){
  if(m.googleEventId&&m.calendarId)return 'https://calendar.google.com/calendar/event?eid='+encodeURIComponent(btoa(m.googleEventId+' '+m.calendarId));
  return 'https://calendar.google.com/calendar/u/0/r/day/'+String(m.date||'').replaceAll('-','/');
 }
+export function updateMeetingDetails(state,id,fields){
+ const all=[...(state.calendarMeetings||[]),...(state.meetings||[]),...(state.events||[]).filter(m=>m.kind==='meeting')];
+ const target=all.find(m=>m.id===id);if(!target)throw Error('Meeting not found');
+ const matches=all.filter(m=>m.id===id||identity(m)===identity(target)||sameVisit(m,target));
+ // Only form-owned fields change; Calendar IDs, history and questionnaires stay intact.
+ const patch=Object.fromEntries(['contactId','date','end','time','roles','lodgingVerified','notes'].filter(k=>k in fields).map(k=>[k,fields[k]]));
+ for(const m of matches)Object.assign(m,structuredClone(patch));
+ return target;
+}
 
 // Read-only schedule projection: Google updates never rewrite a questionnaire.
 export function calendarSchedule(state){
