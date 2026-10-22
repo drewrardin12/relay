@@ -1,23 +1,38 @@
 const day=value=>/^\d{4}-\d{2}-\d{2}$/.test(String(value||''));
 const clean=value=>String(value||'').trim();
+const identity=m=>String(m.googleEventId||m.id||'');
+export const sameVisit=(a,b)=>Boolean(a.contactId&&a.contactId===b.contactId&&a.date===b.date&&(a.end||a.date)===(b.end||b.date)&&(!a.time||!b.time||a.time===b.time));
+const cancelled=m=>m.calendarStatus==='cancelled'||Boolean(m.relayCancelledAt);
+export function cancelMeeting(state,id,stamp=new Date().toISOString()){
+ const all=[...(state.calendarMeetings||[]),...(state.meetings||[]),...(state.events||[]).filter(m=>m.kind==='meeting')];
+ const target=all.find(m=>m.id===id);if(!target)throw Error('Meeting not found');
+ // Persist a local cancellation even while the Google event still exists.
+ if(!(state.meetings||[]).some(m=>m.id===id)){state.meetings||=[];state.meetings.push({...target});}
+ for(const m of [...all,...state.meetings])if(m.id===target.id||identity(m)===identity(target)||sameVisit(m,target))Object.assign(m,{relayCancelledAt:stamp});
+ return target;
+}
+export function googleMeetingLink(m,c={}){
+ if(m.googleEventId&&m.calendarId)return 'https://calendar.google.com/calendar/event?eid='+encodeURIComponent(btoa(m.googleEventId+' '+m.calendarId));
+ return 'https://calendar.google.com/calendar/u/0/r/day/'+String(m.date||'').replaceAll('-','/');
+}
 
 // Read-only schedule projection: Google updates never rewrite a questionnaire.
 export function calendarSchedule(state){
  const calendar=state.calendarMeetings||[];
- const identity=m=>String(m.googleEventId||m.id||'');
  const linked=new Set(calendar.map(identity));
- const sameVisit=(a,b)=>a.contactId&&a.contactId===b.contactId&&a.date===b.date&&(a.end||a.date)===(b.end||b.date)&&(!a.time||!b.time||a.time===b.time);
+ const cancellations=[...calendar,...(state.meetings||[]),...(state.events||[])].filter(cancelled);
+ const isCancelled=m=>cancelled(m)||cancellations.some(c=>identity(c)===identity(m)||sameVisit(c,m));
  // Older manually saved schedules have random IDs. Hide their mirror only
  // when one Calendar occurrence identifies the visit unambiguously. Keep the
  // original records (and every questionnaire) intact for editing/recovery.
- const local=(state.meetings||[]).filter(m=>!linked.has(identity(m))&&calendar.filter(c=>sameVisit(m,c)).length!==1);
- const active=calendar.filter(m=>m.calendarStatus!=='cancelled'&&!m.excludeFromStats);
+ const local=(state.meetings||[]).filter(m=>!isCancelled(m)&&!m.excludeFromStats&&!linked.has(identity(m))&&calendar.filter(c=>sameVisit(m,c)).length!==1);
+ const active=calendar.filter(m=>!isCancelled(m)&&!m.excludeFromStats);
  return [...local,...active];
 }
 export function calendarTimeline(state){
- const calendar=state.calendarMeetings||[],ids=new Set(calendar.map(m=>String(m.googleEventId||m.id||'')));
- const events=(state.events||[]).filter(e=>e.kind!=='meeting'||(!e.manifestId&&!ids.has(String(e.googleEventId||e.id||''))));
- return [...events,...calendarSchedule(state).map(m=>({...m,kind:'meeting'}))];
+ const meetings=[...(state.meetings||[])];
+ for(const e of state.events||[])if(e.kind==='meeting'&&!meetings.some(m=>m.id===e.id))meetings.push(e);
+ return [...(state.events||[]).filter(e=>e.kind!=='meeting'),...calendarSchedule({...state,meetings}).map(m=>({...m,kind:'meeting'}))];
 }
 
 export function importCalendarMetadata(state,bundle){

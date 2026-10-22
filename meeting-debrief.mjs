@@ -1,9 +1,11 @@
+import {sameVisit} from './calendar-sync.mjs?v=20261022-cancel';
 const day=value=>String(value||'').slice(0,10);
 const choice=value=>['yes','no'].includes(value)?value:'unknown';
 const count=value=>value===''||value===null||value===undefined?null:Math.max(0,Math.trunc(Number(value)||0));
 export function journalMeetings(state){
  const rows=Array.isArray(state?.calendarMeetings)&&state.calendarMeetings.length?state.calendarMeetings:(state?.meetings||[]);
- return rows.filter(meeting=>!meeting.excludeFromStats);
+ const cancelled=[...(state.meetings||[]),...(state.events||[]),...rows].filter(m=>m.relayCancelledAt||m.calendarStatus==='cancelled');
+ return rows.filter(meeting=>!meeting.excludeFromStats&&!cancelled.some(m=>m.id===meeting.id||(m.googleEventId&&m.googleEventId===meeting.googleEventId)||sameVisit(m,meeting)));
 }
 
 export function meetingEnd(meeting){return day(meeting?.end||meeting?.date);}
