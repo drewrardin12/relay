@@ -60,6 +60,10 @@ const activeTides=id=>state.tides.filter(t=>!t.completed&&!t.legacyHidden&&(!id|
 const resultNames={badnumber:'Bad number',notinterested:'Not interested',pastor:'Spoke to pastor',secretary:'Spoke to secretary',voicemail:'Left voicemail',noanswer1:'No answer · first attempt',noanswer2:'No answer · second attempt',sent:'Sent',received:'Received',conversation:'Conversation',completed:'Completed',note:'Note',other:'Other'};
 const resultIcons={badnumber:'close',notinterested:'close',pastor:'person',secretary:'person',voicemail:'voicemail',noanswer1:'call',noanswer2:'call',sent:'check',received:'check',conversation:'support',completed:'check',note:'note'};
 function btn(action,label,cls='secondary',extra=''){
+ if(action==='cancel-meeting'||action==='meeting-form'&&extra.includes('data-meeting=')){
+  const description=action==='cancel-meeting'?'Cancel meeting':'Edit meeting';
+  return `<button type="button" class="${cls} meeting-icon-action" data-action="${action}" ${extra} aria-label="${description}" title="${description}">${icon(action==='cancel-meeting'?'close':'edit')}</button>`;
+ }
  const compact={log:['plus','Log contact'], 'meeting-form':['calendar','Schedule meeting'], 'tide-form':extra.includes('data-tide=')?['edit','Edit Tide']:['bell','Create Tide'], 'edit-contact':['edit','Edit contact'], 'goal-edit':['edit','Edit annual goal']}[action];
  if(compact&&!(action==='meeting-form'&&extra.includes('data-meeting='))){label=icon(compact[0]);cls+=' compact-action';if(!extra.includes('aria-label='))extra+=` aria-label="${compact[1]}"`;extra+=` title="${compact[1]}"`;}
  return `<button class="${cls}" data-action="${action}" ${extra}>${label}</button>`;

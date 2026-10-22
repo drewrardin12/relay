@@ -293,3 +293,6 @@ svg:has(>path[d^="M21.174 6.812"]) {stroke-width:2;}
 .amenity-handouts{--amenity-bg:#254637;--amenity-edge:#52896a;--amenity-accent:#a1d6b4}
 .support-mosaic .amenity-available>svg,.support-mosaic .amenity-available h3,.support-mosaic .amenity-available p{color:var(--amenity-accent)}
 .support-mosaic .amenity-available .dot{background:var(--amenity-accent)}
+.meeting-icon-action{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:10px;vertical-align:middle}
+.meeting-icon-action+.meeting-icon-action{margin-left:8px}
+.meeting-icon-action .icon{width:22px;height:22px;margin:0}
