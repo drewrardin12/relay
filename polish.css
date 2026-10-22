@@ -304,3 +304,11 @@ svg:has(>path[d^="M21.174 6.812"]) {stroke-width:2;}
 #app[data-wing=manifest]{--texture:url('chart-manifest.svg?v=20261022');background-size:100% auto;background-repeat:repeat-y;background-position:center top}
 #app[data-wing=voyage]{--texture:url('chart-voyage.svg?v=20261022');background-size:100% auto;background-repeat:repeat-y;background-position:center top}
 #app[data-wing=tides]{--texture:url('chart-tides.svg?v=20261022');background-size:100% auto;background-repeat:repeat-y;background-position:center top}
+#app[data-wing=helm]{--texture:url('chart-helm.svg?v=20261022');background-size:100% auto;background-repeat:repeat-y;background-position:center top}
+/* Fade only the photograph layer, never the heading or controls. The chart
+   remains continuous underneath, avoiding a solid-color/photo-to-tile edge. */
+#app .hero{background-image:none;background-color:transparent}
+#app .hero::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(0deg,var(--bg),var(--hero-wash,#0b1b2b08) 65%),var(--hero);background-size:cover;background-position:inherit;-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 58%,transparent 100%);mask-image:linear-gradient(to bottom,#000 0%,#000 58%,transparent 100%)}
+#app .hero.helm[data-light=morning]{--hero-wash:#15384c30}
+#app .hero.helm[data-light=day]{--hero-wash:#3371971a}
+#app .hero.helm[data-light=night]{--hero-wash:#06142180}
