@@ -15,11 +15,11 @@ export function iosMapStyle(source){
   }
   if(layer.type==='line'){
    if(id==='waterway')p['line-color']='#19324c';
-   else if(/motorway.*inner|motorway_subtle/.test(id))p['line-color']='#a88b53';
-   else if(/motorway.*casing/.test(id))p['line-color']='#635741';
+   else if(/motorway.*inner|motorway_subtle/.test(id))p['line-color']='#958467';
+   else if(/motorway.*casing/.test(id))p['line-color']='#5f5648';
    else if(/highway_major_inner/.test(id))p['line-color']='#686d76';
    else if(/highway_major_casing|highway_minor/.test(id))p['line-color']='#42474f';
-   else if(/boundary/.test(id))p['line-color']='#686d75';
+   else if(/boundary/.test(id)){p['line-color']='#a5b2c4';p['line-dasharray']=[4,3];p['line-opacity']=.8;}
    else p['line-color']='#414751';
   }
   if(layer.type==='symbol'&&p['text-color']){
