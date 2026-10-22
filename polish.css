@@ -296,3 +296,7 @@ svg:has(>path[d^="M21.174 6.812"]) {stroke-width:2;}
 .meeting-icon-action{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:10px;vertical-align:middle}
 .meeting-icon-action+.meeting-icon-action{margin-left:8px}
 .meeting-icon-action .icon{width:22px;height:22px;margin:0}
+.note-format-toolbar{flex-wrap:wrap}
+.note-list{margin:8px 0;padding-left:1.5em;white-space:normal;text-align:left;letter-spacing:normal;font-weight:400}
+.note-list li{margin:4px 0;padding-left:3px;line-height:1.55}
+.note-list li::marker{color:currentColor}

@@ -46,4 +46,4 @@ export function openLodging(api){
  }
  open();
 }
-import {renderNote} from './note-format.mjs?v=20261021';
+import {renderNote} from './note-format.mjs?v=20261022-lists';
