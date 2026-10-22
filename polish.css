@@ -300,3 +300,7 @@ svg:has(>path[d^="M21.174 6.812"]) {stroke-width:2;}
 .note-list{margin:8px 0;padding-left:1.5em;white-space:normal;text-align:left;letter-spacing:normal;font-weight:400}
 .note-list li{margin:4px 0;padding-left:3px;line-height:1.55}
 .note-list li::marker{color:currentColor}
+/* Approved chart artwork: one cached tile per wing, with feathered repeat joins. */
+#app[data-wing=manifest]{--texture:url('chart-manifest.svg?v=20261022');background-size:100% auto;background-repeat:repeat-y;background-position:center top}
+#app[data-wing=voyage]{--texture:url('chart-voyage.svg?v=20261022');background-size:100% auto;background-repeat:repeat-y;background-position:center top}
+#app[data-wing=tides]{--texture:url('chart-tides.svg?v=20261022');background-size:100% auto;background-repeat:repeat-y;background-position:center top}
