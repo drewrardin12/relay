@@ -1,4 +1,4 @@
-import {loadCourseMaps,openCoursePlanner} from './course-planner.mjs?v=20261021-lodging';
+import {loadCourseMaps,openCoursePlanner} from './course-planner.mjs?v=20261022-ios';
 import {located,milesBetween,routePosition} from './course-geometry.mjs';
 import {matchesContactSearch} from './contact-search.mjs?v=20261021';
 const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -36,7 +36,7 @@ export function openLodging(api){
   draw(rows,host);
  }
  let drawVersion=0;
- async function draw(rows,host){const version=++drawVersion;try{const L=await loadCourseMaps();if(version!==drawVersion||!host.isConnected||!host.closest('dialog')?.open)return;destroy();map=L.map(host.querySelector('#lodging-map'),{scrollWheelZoom:false,preferCanvas:true});L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);const points=[];for(const c of rows.filter(located)){points.push([c.lat,c.lng]);const marker=L.circleMarker([c.lat,c.lng],{radius:7,color:'#fff',weight:1.5,fillColor:c.wing==='manifest'?'#4f9fe8':'#d8ad63',fillOpacity:.95}).addTo(map);const card=document.createElement('div');card.className='course-map-card';const title=document.createElement('strong');title.textContent=c.pastor||c.church;const detail=document.createElement('div');detail.textContent=[c.church,c.city,c.state].filter(Boolean).join(' · ');const button=document.createElement('button');button.textContent='Open contact';button.onclick=()=>{api.closeSheet();api.onOpen(c.id);};card.append(title,detail,button);marker.bindPopup(card);}
+ async function draw(rows,host){const version=++drawVersion;try{const L=await loadCourseMaps();if(version!==drawVersion||!host.isConnected||!host.closest('dialog')?.open)return;destroy();map=L.map(host.querySelector('#lodging-map'),{minZoom:1,maxZoom:18,scrollWheelZoom:false,preferCanvas:true});addRelayBasemap(L,map);const points=[];for(const c of rows.filter(located)){points.push([c.lat,c.lng]);const marker=L.circleMarker([c.lat,c.lng],{radius:7,color:'#fff',weight:1.5,fillColor:c.wing==='manifest'?'#4f9fe8':'#d8ad63',fillOpacity:.95}).addTo(map);const card=document.createElement('div');card.className='course-map-card';const title=document.createElement('strong');title.textContent=c.pastor||c.church;const detail=document.createElement('div');detail.textContent=[c.church,c.city,c.state].filter(Boolean).join(' · ');const button=document.createElement('button');button.textContent='Open contact';button.onclick=()=>{api.closeSheet();api.onOpen(c.id);};card.append(title,detail,button);marker.bindPopup(card);}
    if(course)L.polyline(course.coordinates.map(([lng,lat])=>[lat,lng]),{color:'#69b6e5',weight:3}).addTo(map);
    if(points.length)map.fitBounds(L.latLngBounds(points),{padding:[25,25],maxZoom:11});else map.setView(center?[center.lat,center.lng]:[38,-97],center?8:4);
   }catch{if(host.isConnected)host.querySelector('#lodging-status').textContent+=' · Map unavailable; the list is still usable.';}}
@@ -47,3 +47,4 @@ export function openLodging(api){
  open();
 }
 import {renderNote} from './note-format.mjs?v=20261022-lists';
+import {addRelayBasemap} from './map-style.mjs?v=20261022';

@@ -3,7 +3,7 @@ import {amenityStatus} from './amenity-status.mjs?v=20261022';
 import {openStateDoor,openStateSearch} from './state-search.mjs?v=20261022';
 import {contactVcard,contactNameParts,callSummary,retireBadNumber} from './contact-actions.mjs?v=20261016-names';
 import {contactActivityIndex} from './contact-activity.mjs';
-import {openCoursePlanner,routeExtras,calculateDetour,showRouteMap,routingCredit,contactRouteSketch} from './course-planner.mjs?v=20261021-lodging';
+import {openCoursePlanner,routeExtras,calculateDetour,showRouteMap,routingCredit,contactRouteSketch} from './course-planner.mjs?v=20261022-ios';
 import {includeManifestPositions} from './course-geometry.mjs?v=20261020-map-update';
 function activityIndicators(c){const activity=activityIndex.get(c.id)||{calls:0,sentEmails:0};return `<span class="contact-activity">${[['call',activity.calls,'recorded calls'],['email',activity.sentEmails,'sent emails']].map(([kind,count,label])=>`<span class="activity-channel" role="img" aria-label="${count} ${label}" title="${count} ${label}">${icon(kind)}<i class="activity-dot ${count?'filled':''}"></i></span>`).join('')}</span>`;}
 import {icon} from './icons.mjs?v=20261007-no-family-history';
@@ -694,5 +694,5 @@ import {applyBadEmailPatch} from './bad-email-import.mjs';
 document.addEventListener('change',async event=>{const el=event.target;if(el.id!=='import-preferred-phones'||!el.files?.[0])return;try{const patch=JSON.parse(await el.files[0].text());let result=applyPreferredPhones(state,patch);if(!confirm(`Set preferred numbers for ${result.updated.length} contacts? ${result.skipped.length} conflicts will stay unchanged. Other contact fields, meetings, history, and email cleanup will not be replaced.`))return;await saveSheetsBackup({createdAt:new Date().toISOString(),reason:'Before preferred phone updates',workingCopy:JSON.parse(exportData(state))});result=applyPreferredPhones(state,patch);const previous=state;state=result.next;if(!await save('Preferred numbers updated')){state=previous;return;}render();toast(`Preferred numbers updated: ${result.updated.length}; skipped: ${result.skipped.length}`);}catch(error){toast(error.message);}finally{el.value='';}});
 document.addEventListener('change',async event=>{const el=event.target;if(el.id!=='import-bad-emails'||!el.files?.[0])return;try{const patch=JSON.parse(await el.files[0].text());const result=applyBadEmailPatch(state,patch);if(!confirm(`Remove reviewed failed or delayed addresses from ${result.updated.length} current contacts and keep an attempted-email note? No other contact data will be replaced.`))return;const previous=state;state=result.next;if(!await save('Failed email addresses removed; attempt history preserved')){state=previous;return;}render();toast(`Email cleanup complete: ${result.updated.length} contacts updated`);}catch(error){toast(error.message);}finally{el.value='';}});
 import {matchesContactSearch} from './contact-search.mjs?v=20261021';
-import {openLodging,lodgingFields} from './lodging.mjs?v=20261022-lists';
+import {openLodging,lodgingFields} from './lodging.mjs?v=20261022-ios';
 installNoteEditors();

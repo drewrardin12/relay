@@ -312,3 +312,30 @@ svg:has(>path[d^="M21.174 6.812"]) {stroke-width:2;}
 #app .hero.helm[data-light=morning]{--hero-wash:#15384c30}
 #app .hero.helm[data-light=day]{--hero-wash:#3371971a}
 #app .hero.helm[data-light=night]{--hero-wash:#06142180}
+/* Shared iOS-inspired map chrome across routes, regions and lodging. */
+.course-map.leaflet-container{background:#f5f3ee;border-radius:22px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#30343b;box-shadow:0 2px 16px #00000012;overflow:hidden}
+.course-map .leaflet-tile-pane{filter:none}
+.course-map .leaflet-control-container .leaflet-bar{border:1px solid #ffffffa6!important;border-radius:14px;box-shadow:0 3px 16px #26364b26;overflow:hidden}
+.course-map .leaflet-bar a,.course-map .course-expand-control button{background:#fffffff0!important;backdrop-filter:blur(18px);color:#2479e8!important;min-width:44px;min-height:44px;line-height:44px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-weight:400}
+.course-map .leaflet-bar a+a{border-top:1px solid #dce0e5}
+.course-map .leaflet-control-zoom-in,.course-map .leaflet-control-zoom-out{font-size:25px}
+.course-map .leaflet-top .leaflet-control{margin-top:14px}.course-map .leaflet-left .leaflet-control{margin-left:14px}.course-map .leaflet-right .leaflet-control{margin-right:14px}
+.course-map .leaflet-popup-content-wrapper{background:#fffffff5;backdrop-filter:blur(20px);border:1px solid #fff;border-radius:22px;box-shadow:0 8px 30px #26364b2e}
+.course-map .leaflet-popup-content{margin:20px 22px;line-height:1.4}.course-map .leaflet-popup-tip{background:#fff}
+.course-map .course-map-card{gap:6px;min-width:175px}.course-map .course-map-card strong{font:600 18px/1.25 -apple-system,BlinkMacSystemFont,sans-serif;color:#252b33}.course-map .course-map-card>div{font-size:13px;color:#69717c}
+.course-map .course-map-card>button{background:#edf4ff;color:#1675ec;border-radius:12px;min-height:44px;font-size:14px}
+.course-map .leaflet-popup-close-button{top:6px;right:6px;color:#858c94!important;border-radius:50%;font-size:20px}
+.course-map .leaflet-control-attribution{background:#ffffffce!important;border-radius:7px 0 0 0;padding:2px 6px;color:#626975;font:9px/1.4 -apple-system,BlinkMacSystemFont,sans-serif}.course-map .leaflet-control-attribution a{color:#52687b}
+.course-area-handle{background:#007aff;border:3px solid #fff;box-shadow:0 2px 9px #0069d940}
+/* Dark map mode, independent of the surrounding wing's palette. */
+.course-map.leaflet-container{background:#24282e;color:#e0e3e8;color-scheme:dark}
+.course-map .leaflet-control-container .leaflet-bar{border-color:#ffffff17!important;box-shadow:0 3px 18px #0005}
+.course-map .leaflet-bar a,.course-map .course-expand-control button{background:#2c3038ef!important;color:#62a9ff!important}
+.course-map .leaflet-bar a+a{border-top-color:#ffffff18}
+.course-map .leaflet-popup-content-wrapper{background:#2c3038f5;border-color:#ffffff12;box-shadow:0 8px 30px #0006}
+.course-map .leaflet-popup-tip{background:#2c3038}
+.course-map .course-map-card strong{color:#f2f3f5}.course-map .course-map-card small,.course-map .course-map-card>div{color:#aab3c1}
+.course-map .course-map-card>button{background:#37465c;color:#83bbff}
+.course-map .leaflet-popup-close-button{color:#b7bdc7!important}
+.course-map .leaflet-control-attribution{background:#24282edb!important;color:#a7afbb}.course-map .leaflet-control-attribution a{color:#b3c3d8}
+.course-map.map-raster-fallback .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.82) saturate(.55)}
