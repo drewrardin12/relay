@@ -1,4 +1,5 @@
 import {giftCategory} from './finance.mjs';
+import {renderGivingReport} from './finance-report.mjs?v=20261022-report';
 export const fallbackInterval=(amount,low=150,high=300)=>amount<=low?1:amount<=high?2:3;
 export function financeDefaults(){return {schedule:[],allowances:{insurance:0,special:0,other:0}};}
 export function financePlan(state,year=new Date().getFullYear()){
@@ -10,6 +11,6 @@ export function financePlan(state,year=new Date().getFullYear()){
  return {settings,rows,allowances,churchMonthly,reported,supportAnnual,planningAnnual:churchMonthly*12+Object.values(allowances).reduce((a,b)=>a+b,0)};
 }
 export function renderFinance(state,year,h){
- const p=financePlan(state,year),{topbar,btn,section,MONEY:M,e}=h;
- return `${topbar('Support & giving',btn('finance-plan-edit','Adjust','plain-btn'))}<div class="page">${btn('finance-classify','Review transaction categories','secondary wide')}${section('Reported giving')}<div class="panel"><h3>${M.format(p.reported)} · ${year}</h3><p>Imported receipts only. Missing reports remain unknown.</p>${btn('route','View reported transactions','secondary wide','data-route="#ledger"')}</div>${section('Import a giving report')}<div class="panel"><p>Add a reviewed report bundle without replacing contacts, conversations, or existing gifts. Reimporting the same report will reconcile it without duplicating money.</p><label class="secondary wide" style="display:block;text-align:center;cursor:pointer">Import reconciled reports<input id="import-reports" type="file" accept=".json,application/json" class="sr-only"></label></div>${section('Private planning assumptions')}<div class="panel"><h3>${M.format(p.supportAnnual)} / year</h3><p>Restored planning scenario—not guaranteed income or confirmed pledges.</p>${p.rows.map(r=>`<div class="ledger-row"><span>${e(r.label)}</span><span>${M.format(r.monthly)} / month · ${e(r.basis)}</span></div>`).join('')||'<p>Import your full backup to restore planning assumptions.</p>'}</div>${section('Year')}<div class="chips">${[new Date().getFullYear(),new Date().getFullYear()-1].map(y=>btn('goal-year',String(y),'chip',`data-year="${y}"`)).join('')}</div></div>`;
+ const p=financePlan(state,year),{topbar,btn}=h;
+ return `${topbar('Support & giving',btn('finance-plan-edit','Adjust','plain-btn'))}${renderGivingReport(state,year,h,p)}`;
 }

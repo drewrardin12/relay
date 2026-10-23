@@ -1,5 +1,7 @@
 import {renderNote,installNoteEditors} from './note-format.mjs?v=20261022-lists';
 import {amenityStatus} from './amenity-status.mjs?v=20261022';
+import {renderDock} from './nav-dock.mjs?v=20261022-report';
+import {renderGivingMonth} from './finance-report.mjs?v=20261022-report';
 import {openStateDoor,openStateSearch} from './state-search.mjs?v=20261022';
 import {contactVcard,contactNameParts,callSummary,retireBadNumber} from './contact-actions.mjs?v=20261016-names';
 import {contactActivityIndex} from './contact-activity.mjs';
@@ -25,7 +27,7 @@ import {journalMeetings,pendingMeetingDebriefs,pastMeetingDebriefs,snoozeMeeting
 import {importDeviceActivity,textTimeline} from './device-activity.mjs?v=20261007-no-family-history';
 import {dataHealth} from './data-health.mjs?v=20260921';
 import {importCalendarMetadata,calendarSchedule,calendarTimeline,cancelMeeting,googleMeetingLink,updateMeetingDetails} from './calendar-sync.mjs?v=20261022-edit';
-import {financePlan,renderFinance} from './finance-plan.mjs';
+import {financePlan,renderFinance} from './finance-plan.mjs?v=20261022-report';
 import {mergeGivingReports,supportEstimate,giftCategory} from './finance.mjs';
 import {tideContext} from "./tide-presentation.mjs";
 import {reconcileTides} from "./tide-reconciliation.mjs";
@@ -183,7 +185,7 @@ function render(){
   if(connections)connections.insertAdjacentHTML('afterbegin',Object.entries(automaticConnections).map(([name,status])=>`<p class="small">${name==='gmail'?'Gmail contact history':'Calendar'} · Last successful automatic update: ${e(new Date(status.lastSuccessfulRun).toLocaleString())}</p>`).join(''));
   for(const id of ['advanced-imported','advanced-backup','advanced-data-tools','advanced-calendar-tools','advanced-journey-tools']){const block=document.querySelector(`#${id}`);if(block)advanced.append(block);}
  }
- document.querySelector('.dock').innerHTML=['helm','manifest','voyage','tides'].map(w=>`<button data-action="route" data-route="#${w}" class="${w===wing?'active':''}" ${w===wing?'aria-current="page"':''}>${icon(w)}<span>${w[0].toUpperCase()+w.slice(1)}</span>${w==='tides'&&activeTides().filter(t=>tideGroup(t)==='Overdue').length?`<span class="nav-count">${activeTides().filter(t=>tideGroup(t)==='Overdue').length}</span>`:''}</button>`).join('');
+ document.querySelector('.dock').innerHTML=renderDock(wing,activeTides().filter(t=>tideGroup(t)==='Overdue').length,icon);
  document.title=`Relay · ${page==='contact'&&c?c.pastor:page||'Helm'}`;
 }
 function renderDriveSettings(){
@@ -579,6 +581,7 @@ case 'recipient-update':openSheet('Import confirmed recipients',`<form id="recip
   case 'finance-classify':openSheet('Transaction categories',`<form id="finance-classify" class="form"><p class="hint">Overrides apply to individual receipts, never all future gifts by donor name. Source labels and memos remain intact.</p>${state.gifts.map((g,i)=>`<fieldset><legend>${e(g.donor||g.church_name)} · ${MONEY.format(g.amount)}</legend><p class="hint">${e(g.date)} · ${e(g.reportFund||g.fund||'')} · ${e(g.reportMemo||g.memo||'')}<br>${e(g.reportSource||g.source||'')} · row ${e(g.reportRow||g.row||'Unknown')}</p><label>Category<select name="category${i}"><option value="" ${!g.categoryOverride?'selected':''}>Use source evidence (${e(giftCategory({...g,categoryOverride:''}))})</option>${['support','love_offering','gift','insurance','unresolved'].map(k=>`<option value="${k}" ${g.categoryOverride===k?'selected':''}>${e(k.replace('_',' '))}</option>`).join('')}</select></label></fieldset>`).join('')}<button class="primary">Save category overrides</button></form>`);break;
   case 'visited-states':{const visited=visitedStates(state);openSheet('States you’ve visited',`<form id="visited-states" class="form"><p class="hint">Check states you have actually visited for ministry. This corrects the map without changing visit history.</p><div class="visited-state-choices">${STATES.map(s=>`<label class="check"><input type="checkbox" name="${s}" ${visited.has(s)?'checked':''}>${s}</label>`).join('')}</div><button class="primary">Save visited states</button></form>`);break;}
   case 'goal-year':goalYear=Number(el.dataset.year);render();break;
+  case 'finance-month':{const year=Number(el.dataset.year),month=Number(el.dataset.month);if(month>=0&&month<12)openSheet(new Date(year,month,1).toLocaleDateString('en-US',{month:'long',year:'numeric'}),renderGivingMonth(state,year,month,{e,MONEY}));break;}
   case 'use-recorded':planningOverride=null;render();break;
   case 'today':document.querySelector('.calendar-month')?.scrollIntoView({behavior:'smooth'});break;
   case 'family-form':openSheet('Add celebration',`<form id="family-form" class="form"><label>Name / celebration<input name="title" required placeholder="Birthday"></label><label>Type<select name="kind"><option value="birthday">Birthday</option><option value="anniversary">Anniversary</option></select></label><label>Date<input name="date" type="date" required></label><p class="hint">Repeats every year. Stays open, with a scheduling warning and a small line icon.</p><div class="submit-row"><button class="primary">Save celebration</button></div></form>`);break;
