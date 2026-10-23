@@ -1,5 +1,9 @@
 // Free vector basemap, styled for Relay. No keys, accounts or Apple services.
 let rendererPromise,stylePromise;
+export function addStateBoundaries(L,map,states){
+ if(!Array.isArray(states?.features)||!states.features.length)return null;
+ return L.geoJSON(states,{interactive:false,bubblingMouseEvents:false,style:{color:'#cbd8ed',weight:1.8,opacity:1,dashArray:'6 4',fill:false}}).addTo(map);
+}
 function script(src){return new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=()=>{s.remove();reject(Error('Map renderer unavailable'));};document.head.append(s);});}
 export function iosMapStyle(source){
  const style=structuredClone(source);
@@ -36,6 +40,9 @@ function renderer(){return rendererPromise??=(async()=>{
  await script('https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.22/leaflet-maplibre-gl.js');
 })().catch(error=>{rendererPromise=null;throw error;});}
 export function addRelayBasemap(L,map){
+ // Basemap boundary layers do not consistently include US states at broad
+ // zooms. Draw our existing state geometry on every map, including fallback.
+ addStateBoundaries(L,map,window.statesData);
  let layer,disposed=false,usingFallback=false,timer;
  const fallback=()=>{if(disposed||usingFallback||!map.getContainer().isConnected)return;usingFallback=true;map.getContainer().classList.add('map-raster-fallback');if(layer){map.removeLayer(layer);layer=null;}L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);clearTimeout(timer);};
  map.on('unload',()=>{disposed=true;clearTimeout(timer);});
