@@ -12,5 +12,5 @@ export function financePlan(state,year=new Date().getFullYear()){
 }
 export function renderFinance(state,year,h){
  const p=financePlan(state,year),{topbar,btn}=h;
- return `${topbar('Support & giving',btn('finance-plan-edit','Adjust','plain-btn'))}${renderGivingReport(state,year,h,p)}`;
+ return `${topbar('Support & giving',btn('finance-plan-edit','Adjust','plain-btn'))}<div class="church-history-launch">${btn('route','Church giving history','secondary wide','data-route="#churchgiving"')}</div>${renderGivingReport(state,year,h,p)}`;
 }
