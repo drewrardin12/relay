@@ -3,6 +3,36 @@ const clean=value=>String(value||'').trim();
 const identity=m=>String(m.googleEventId||m.id||'');
 export const sameVisit=(a,b)=>Boolean(a.contactId&&a.contactId===b.contactId&&a.date===b.date&&(a.end||a.date)===(b.end||b.date)&&(!a.time||!b.time||a.time===b.time));
 const cancelled=m=>m.calendarStatus==='cancelled'||Boolean(m.relayCancelledAt);
+const meetingRows=state=>[...(state.calendarMeetings||[]),...(state.meetings||[]),...(state.events||[]).filter(m=>m.kind==='meeting')];
+const matchesMeeting=(a,b)=>Boolean(a.id&&a.id===b.id)||(a.cancelledMeetingId&&a.cancelledMeetingId===b.id)||(b.cancelledMeetingId&&b.cancelledMeetingId===a.id)||(identity(a)&&identity(a)===identity(b))||sameVisit(a,b);
+// A local cancellation is a durable user decision, even when its cloud write fails.
+// Keep it through subscriptions, startup hydration, and older Calendar snapshots.
+export function preserveRelayCancellations(next,previous){
+ let changed=false;
+ for(const saved of meetingRows(previous).filter(m=>m.relayCancelledAt)){
+  next.meetings||=[];
+  if(!next.meetings.some(m=>matchesMeeting(m,saved))){next.meetings.push(structuredClone(saved));changed=true;}
+  for(const m of meetingRows(next).filter(m=>matchesMeeting(m,saved))){
+   if(!m.relayCancelledAt||m.relayCancelledAt<saved.relayCancelledAt){m.relayCancelledAt=saved.relayCancelledAt;changed=true;}
+  }
+ }
+ return changed;
+}
+export function cancelledMeetingHistory(state){
+ const rows=meetingRows(state),cancellations=rows.filter(cancelled),groups=[];
+ for(const m of rows.filter(m=>cancellations.some(c=>matchesMeeting(c,m)))){
+  const linked=groups.filter(group=>group.some(c=>matchesMeeting(c,m)));
+  if(!linked.length){groups.push([m]);continue;}
+  linked[0].push(m);
+  for(const group of linked.slice(1)){linked[0].push(...group);groups.splice(groups.indexOf(group),1);}
+ }
+ return groups.map(group=>{
+  const dated=group.find(m=>m.date);if(!dated)return null;
+  const m={...dated};
+  for(const saved of group){m.notes||=saved.notes;m.debrief||=saved.debrief;m.relayCancelledAt||=saved.relayCancelledAt;m.cancelledAt||=saved.cancelledAt;}
+  return m;
+ }).filter(Boolean).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+}
 export function cancelMeeting(state,id,stamp=new Date().toISOString()){
  const all=[...(state.calendarMeetings||[]),...(state.meetings||[]),...(state.events||[]).filter(m=>m.kind==='meeting')];
  const target=all.find(m=>m.id===id);if(!target)throw Error('Meeting not found');
@@ -30,7 +60,7 @@ export function calendarSchedule(state){
  const calendar=state.calendarMeetings||[];
  const linked=new Set(calendar.map(identity));
  const cancellations=[...calendar,...(state.meetings||[]),...(state.events||[])].filter(cancelled);
- const isCancelled=m=>cancelled(m)||cancellations.some(c=>identity(c)===identity(m)||sameVisit(c,m));
+ const isCancelled=m=>cancelled(m)||cancellations.some(c=>matchesMeeting(c,m));
  // Older manually saved schedules have random IDs. Hide their mirror only
  // when one Calendar occurrence identifies the visit unambiguously. Keep the
  // original records (and every questionnaire) intact for editing/recovery.

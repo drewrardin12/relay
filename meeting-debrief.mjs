@@ -1,10 +1,10 @@
-import {sameVisit} from './calendar-sync.mjs?v=20261022-cancel';
+import {sameVisit,cancelledMeetingHistory} from './calendar-sync.mjs?v=20261027-cancellations';
 const day=value=>String(value||'').slice(0,10);
 const choice=value=>['yes','no'].includes(value)?value:'unknown';
 const count=value=>value===''||value===null||value===undefined?null:Math.max(0,Math.trunc(Number(value)||0));
 export function journalMeetings(state){
  const rows=Array.isArray(state?.calendarMeetings)&&state.calendarMeetings.length?state.calendarMeetings:(state?.meetings||[]);
- const cancelled=[...(state.meetings||[]),...(state.events||[]),...rows].filter(m=>m.relayCancelledAt||m.calendarStatus==='cancelled');
+ const cancelled=cancelledMeetingHistory(state);
  return rows.filter(meeting=>!meeting.excludeFromStats&&!cancelled.some(m=>m.id===meeting.id||(m.googleEventId&&m.googleEventId===meeting.googleEventId)||sameVisit(m,meeting)));
 }
 

@@ -1,3 +1,4 @@
+import {preserveRelayCancellations} from './calendar-sync.mjs?v=20261027-cancellations';
 const FIREBASE_CONFIG={
  apiKey:'AIzaSyBispQMEhaCln1tMDs0P2Crskc8AtAG5bk',
  authDomain:'relay-ministry.firebaseapp.com',
@@ -9,7 +10,7 @@ const FIREBASE_CONFIG={
 const RELAY_EMAIL=['rardins','abm'].join('.')+'@'+'gmail.com';
 const ARRAY_KEYS=['contacts','logs','tides','meetings','events','gifts','calendarMeetings','calendarVacations','familyDates'];
 const SDK='https://www.gstatic.com/firebasejs/11.10.0/';
-let auth,db,api,ready,active=null,saveTimer=null,saveQueued=null;
+let auth,db,api,ready,active=null,saveTimer=null,saveQueued=null,saveChain=Promise.resolve();
 const clone=value=>JSON.parse(JSON.stringify(value));
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const docId=id=>encodeURIComponent(String(id));
@@ -84,7 +85,13 @@ export async function openRealtimeAccount(localState,{onRemote}={}){
  remote.realtimeSync={email:user.email,connectedAt:new Date().toISOString()};
  const baseline={meta:meta.json||'{}',records:{}},listeners=[];
  let applying=false,hydrated=false;
- const pending=new Map();
+ const pending=new Map(),duringSave=new Map();
+ const deliver=(key,rows,records)=>{
+  const previous=baseline.records[key];
+  if(previous?.size===records.size&&[...records].every(([id,json])=>previous.get(id)===json))return;
+  baseline.records[key]=records;
+  if(!hydrated)pending.set(key,rows);else onRemote?.({key,rows});
+ };
  // The first server-confirmed snapshot is both initial load and subscription.
  // Never accept an incomplete cached query as the authoritative account copy.
  try{await Promise.all(ARRAY_KEYS.map(key=>new Promise((resolve,reject)=>{
@@ -94,20 +101,19 @@ export async function openRealtimeAccount(localState,{onRemote}={}){
    try{
     const rows=collectionRows(snap);
     if(initial){initial=false;remote[key]=rows;baseline.records[key]=new Map(snap.docs.map(d=>[d.id,d.data().json]));resolve();return;}
-    if(applying)return;
-    const previous=baseline.records[key];
-    if(previous?.size===snap.docs.length&&snap.docs.every(d=>previous.get(d.id)===d.data().json))return;
-    baseline.records[key]=new Map(snap.docs.map(d=>[d.id,d.data().json]));
-    if(!hydrated)pending.set(key,rows);else onRemote?.({key,rows});
+    const records=new Map(snap.docs.map(d=>[d.id,d.data().json]));
+    if(applying){duringSave.set(key,{rows,records});return;}
+    deliver(key,rows,records);
    }catch(error){if(initial)reject(error);}
   },error=>{if(initial)reject(error);}));
  })));}catch(error){listeners.forEach(stop=>stop());throw error;}
  for(const [key,rows] of pending)remote[key]=rows;
  listeners.push(a.onSnapshot(metaRef(user.uid),snap=>{if(!snap.exists()||snap.metadata.hasPendingWrites)return;baseline.meta=snap.data().json||'{}';onRemote?.({meta:JSON.parse(baseline.meta)});}));
  listeners.push(a.onSnapshot(recordsRef(user.uid,'integrations'),snap=>{const integrations={};snap.forEach(d=>{try{integrations[d.id]=JSON.parse(d.data().json);}catch{}});onRemote?.({integrations});}));
- active={uid:user.uid,baseline,stop:()=>listeners.forEach(stop=>stop()),setApplying:value=>{applying=value;}};
+ active={uid:user.uid,baseline,stop:()=>listeners.forEach(stop=>stop()),setApplying:value=>{applying=value;if(!value){const queued=[...duringSave];duringSave.clear();for(const [key,{rows,records}] of queued)deliver(key,rows,records);}}};
  hydrated=true;
- return {status:'loaded',state:remote,email:user.email};
+ const cancellationsPending=preserveRelayCancellations(remote,localState);
+ return {status:'loaded',state:remote,email:user.email,cancellationsPending};
 }
 
 export async function establishRealtimeAccount(state){
@@ -128,17 +134,25 @@ export function scheduleRealtimeSave(state,onStatus,delay=350){
  },delay);
 }
 
-export async function saveRealtime(state){
- if(!active||!auth.currentUser)return;
- const a=api,ops=[];active.setApplying(true);
+export function saveRealtime(state){
+ const account=active,snapshot=clone(state);
+ const result=saveChain.then(()=>commitRealtime(snapshot,account));
+ saveChain=result.catch(()=>{});
+ return result;
+}
+async function commitRealtime(state,account){
+ if(!account||active!==account||!auth.currentUser)return;
+ const a=api,ops=[],records={};account.setApplying(true);
  try{
   for(const key of ARRAY_KEYS){
-   const current=localRecords(state,key),before=active.baseline.records[key]||new Map();
-   for(const [id,json] of current)if(before.get(id)!==json)ops.push(batch=>batch.set(a.doc(recordsRef(active.uid,key),id),{json,updatedAt:a.serverTimestamp()}));
-   for(const id of before.keys())if(!current.has(id))ops.push(batch=>batch.delete(a.doc(recordsRef(active.uid,key),id)));
-   active.baseline.records[key]=current;
+   const current=localRecords(state,key),before=account.baseline.records[key]||new Map();
+   for(const [id,json] of current)if(before.get(id)!==json)ops.push(batch=>batch.set(a.doc(recordsRef(account.uid,key),id),{json,updatedAt:a.serverTimestamp()}));
+   for(const id of before.keys())if(!current.has(id))ops.push(batch=>batch.delete(a.doc(recordsRef(account.uid,key),id)));
+   records[key]=current;
   }
-  const meta=JSON.stringify(cloudMeta(state));if(meta!==active.baseline.meta){ops.push(batch=>batch.set(metaRef(active.uid),{json:meta,updatedAt:a.serverTimestamp()},{merge:true}));active.baseline.meta=meta;}
+  const meta=JSON.stringify(cloudMeta(state));if(meta!==account.baseline.meta)ops.push(batch=>batch.set(metaRef(account.uid),{json:meta,updatedAt:a.serverTimestamp()},{merge:true}));
   await commitChunks(ops);
- }finally{active.setApplying(false);}
+  // A rejected write must remain dirty so the next save can retry it.
+  Object.assign(account.baseline.records,records);account.baseline.meta=meta;
+ }finally{account.setApplying(false);}
 }

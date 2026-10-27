@@ -1,4 +1,4 @@
-const CACHE='relay-shell-v92-meeting-layout';
+const CACHE='relay-shell-v93-cancellations';
 const STATE_SEARCH_SHELL=['state-search.mjs?v=20261022','amenity-status.mjs?v=20261022','map-style.mjs?v=20261022','course-planner.mjs?v=20261022-ios','lodging.mjs?v=20261022-ios'];
 const SHELL=['./','index.html','styles.css','polish.css','app.mjs','contact-actions.mjs','realtime-sync.mjs','contact-cleanup.mjs','us-map.mjs','domain.mjs','icons.mjs','seed.mjs','store.mjs','polarsteps-journal.mjs','tide-reconciliation.mjs','contact-polish.mjs','meeting-debrief.mjs','device-activity.mjs','data-health.mjs','calendar-sync.mjs','finance.mjs','finance-plan.mjs','manifest.webmanifest','logo.png','logo-transparent.svg','helm.webp','manifest.webp','voyage.webp','tides.webp','contours.svg','parchment.svg'];
 SHELL.push('nav-dock.mjs?v=20261022-report','finance-report.mjs?v=20261022-report','finance-plan.mjs?v=20261022-report');
