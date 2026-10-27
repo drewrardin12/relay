@@ -1,9 +1,10 @@
-const CACHE='relay-shell-v94-low-read';
+const CACHE='relay-shell-v95-call-duration';
 const STATE_SEARCH_SHELL=['state-search.mjs?v=20261022','amenity-status.mjs?v=20261022','map-style.mjs?v=20261022','course-planner.mjs?v=20261022-ios','lodging.mjs?v=20261022-ios'];
 const SHELL=['./','index.html','styles.css','polish.css','app.mjs','contact-actions.mjs','realtime-sync.mjs','contact-cleanup.mjs','us-map.mjs','domain.mjs','icons.mjs','seed.mjs','store.mjs','polarsteps-journal.mjs','tide-reconciliation.mjs','contact-polish.mjs','meeting-debrief.mjs','device-activity.mjs','data-health.mjs','calendar-sync.mjs','finance.mjs','finance-plan.mjs','manifest.webmanifest','logo.png','logo-transparent.svg','helm.webp','manifest.webp','voyage.webp','tides.webp','contours.svg','parchment.svg'];
 SHELL.push('nav-dock.mjs?v=20261022-report','finance-report.mjs?v=20261022-report','finance-plan.mjs?v=20261022-report');
 SHELL.push('church-giving.mjs?v=20261022');
 SHELL.push('app.mjs?v=20261027-low-read','realtime-sync.mjs?v=20261027-low-read','sync-engine.mjs','sync-engine.mjs?v=20261027-low-read','local-database.mjs','local-database.mjs?v=20261027-low-read','calendar-sync.mjs?v=20261027-cancellations','meeting-debrief.mjs?v=20261027-cancellations');
+SHELL.push('app.mjs?v=20261027-call-duration','device-activity.mjs?v=20261027-call-duration');
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll([...SHELL,...STATE_SEARCH_SHELL].map(url=>new Request(url,{cache:'reload'})))).then(()=>self.skipWaiting())));
 SHELL.push('relay-icon-180.png','relay-icon-192.png','relay-icon-512.png');
 SHELL.push('chart-manifest.svg?v=20261022','chart-voyage.svg?v=20261022','chart-tides.svg?v=20261022');

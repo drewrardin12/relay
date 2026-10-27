@@ -1,13 +1,24 @@
 import {isFriend} from './recipient-tools.mjs';
 const digits=value=>String(value||'').replace(/\D/g,'').slice(-10);
 const numbers=contact=>[contact.phone,contact.cell].flat().flatMap(v=>String(v||'').split(/[\n;,]/)).map(digits).filter(Boolean);
+export function callDuration(value){
+ if(value===null||value===undefined||value===''||!Number.isFinite(Number(value))||Number(value)<0)return 'duration unavailable';
+ const total=Math.round(Number(value)),hours=Math.floor(total/3600),minutes=Math.floor(total%3600/60),seconds=total%60;
+ return [hours?`${hours} hr`:'',minutes?`${minutes} min`:'',seconds||!total?`${seconds} sec`:''].filter(Boolean).join(' ');
+}
+export function callDetails(row){return `${row.direction==='outgoing'?'Outgoing':'Incoming'} call${typeof row.answered==='boolean'?` · ${row.answered?'answered':'unanswered'}`:''} · ${callDuration(row.durationSeconds)}`;}
+function displayCall(row){
+ if(row.type!=='call'||(!row.deviceActivityId&&!row.metadataOnly))return row;
+ // Format older imports on display, without rewriting their saved history.
+ return {...row,details:String(row.details||'').replace(/\b(\d+(?:\.\d+)?) seconds\b/g,(_match,value)=>callDuration(value))};
+}
 // Display-only grouping: the original activity records remain available in
 // backups and synchronization. A window spans seven calendar days, not an
 // indefinitely rolling chain of messages.
 export function textTimeline(rows){
  const direction=row=>row.result==='sent'?'sent':row.result==='received'?'received':null;
  const eligible=row=>row.type==='text'&&row.deviceActivityId&&direction(row)&&/^\d{4}-\d{2}-\d{2}$/.test(row.date);
- const other=rows.filter(row=>!eligible(row)),groups=new Map();
+ const other=rows.filter(row=>!eligible(row)).map(displayCall),groups=new Map();
  for(const row of rows.filter(eligible)){
   const key=row.contactId;
   if(!groups.has(key))groups.set(key,[]);
@@ -43,7 +54,7 @@ export function importDeviceActivity(state,bundle){
   const activityId=String(row.id||`${row.kind}:${row.occurredAt}:${digits(row.phone)}:${row.direction||''}`);if(known.has(activityId))continue;
   const matches=[...new Set(owners.get(digits(row.phone))||[])];if(matches.length!==1){matches.length?ambiguous++:unmatched++;continue;}
   if(friends.has(matches[0])){skippedFriends++;continue;}
-  state.logs.push({id:crypto.randomUUID(),deviceActivityId:activityId,contactId:matches[0],type:row.kind,date:String(row.occurredAt).slice(0,10),time:String(row.occurredAt).slice(11,16),result:row.kind==='text'?(row.direction==='outgoing'?'sent':'received'):'conversation',details:row.kind==='text'?`Text ${row.direction==='outgoing'?'sent':'received'} · content not stored`:`${row.direction==='outgoing'?'Outgoing':'Incoming'} call · ${Number(row.durationSeconds)||0} seconds`,createdAt:new Date().toISOString(),metadataOnly:true});known.add(activityId);added++;
+  state.logs.push({id:crypto.randomUUID(),deviceActivityId:activityId,contactId:matches[0],type:row.kind,date:String(row.occurredAt).slice(0,10),time:String(row.occurredAt).slice(11,16),result:row.kind==='text'?(row.direction==='outgoing'?'sent':'received'):'conversation',details:row.kind==='text'?`Text ${row.direction==='outgoing'?'sent':'received'} · content not stored`:callDetails(row),...(row.kind==='call'?{durationSeconds:Number.isFinite(Number(row.durationSeconds))&&row.durationSeconds!=null?Math.max(0,Number(row.durationSeconds)):null}:{}),createdAt:new Date().toISOString(),metadataOnly:true});known.add(activityId);added++;
  }
  state.deviceActivityReview={importedAt:new Date().toISOString(),added,unmatched,ambiguous};return {state,added,unmatched,ambiguous};
 }

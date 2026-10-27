@@ -27,7 +27,7 @@ import {validCoordinates,recoverCoordinates,locateChurch,locationChanged,clearLo
 import {helmStats} from './helm-stats.mjs?v=20260919-calendar-fallback';
 import {locationLabel,visitedStates,contactPhoto,journalPhoto} from './contact-polish.mjs';
 import {journalMeetings,pendingMeetingDebriefs,pastMeetingDebriefs,snoozeMeetingDebriefById,saveMeetingDebrief,applyDebriefToContact,polarstepsCatchup,ministryJournalStats,latestJourneyMeeting} from './meeting-debrief.mjs?v=20261027-cancellations';
-import {importDeviceActivity,textTimeline} from './device-activity.mjs?v=20261007-no-family-history';
+import {importDeviceActivity,textTimeline} from './device-activity.mjs?v=20261027-call-duration';
 import {dataHealth} from './data-health.mjs?v=20260921';
 import {importCalendarMetadata,calendarSchedule,calendarTimeline,cancelMeeting,googleMeetingLink,updateMeetingDetails,preserveRelayCancellations,cancelledMeetingHistory} from './calendar-sync.mjs?v=20261027-cancellations';
 import {financePlan,renderFinance} from './finance-plan.mjs?v=20261022-report';
