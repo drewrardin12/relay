@@ -285,7 +285,7 @@ svg:has(>path[d^="M21.174 6.812"]) {stroke-width:2;}
 .lodging-kind select{background:var(--surface);color:var(--text);border:1px solid var(--line);padding:10px;border-radius:10px;max-width:65%}
 #lodging-map{height:320px;margin-bottom:16px}#sheet.course-map-expanded #lodging-map{height:calc(100dvh - 330px);min-height:300px}
 .lodging-card h3{font:400 24px var(--serif);margin:8px 0}.lodging-card p{font-size:12px;margin:8px 0;line-height:1.6}.lodging-card .lodging-notes{white-space:pre-wrap}.lodging-card .blue{color:#79baff}
-.lodging-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.lodging-actions>*{flex:1;text-align:center;min-height:42px}
+.lodging-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:14px}.lodging-actions>*{flex:0 0 44px;width:44px;height:44px;min-height:44px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:12px;color:var(--gold)}.lodging-actions .icon,.lodging-popup-open .icon{width:20px;height:20px}.course-map .course-map-card>.lodging-popup-open{display:inline-flex;align-items:center;justify-content:center;align-self:flex-end;width:44px;padding:0}.lodging-tools button[aria-pressed=true]{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
 .lodging-edit>summary{color:var(--gold)}#lodging-place [role=status]>button{display:block;margin-top:10px}
 .note-format-toolbar{display:flex;gap:6px;margin:8px 0 0;padding:0;letter-spacing:normal}
 .note-format-toolbar button{display:grid;place-items:center;min-width:42px;min-height:38px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--gold);font-size:15px}

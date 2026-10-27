@@ -40,6 +40,9 @@ function renderer(){return rendererPromise??=(async()=>{
  await script('https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.22/leaflet-maplibre-gl.js');
 })().catch(error=>{rendererPromise=null;throw error;});}
 export function addRelayBasemap(L,map){
+ // Canvas paths need a viewport before adding the shared state outlines.
+ // Otherwise Leaflet throws while clipping paths and leaves a half-built map.
+ if(!Number.isFinite(map.getZoom()))map.setView([38,-97],4,{animate:false});
  // Basemap boundary layers do not consistently include US states at broad
  // zooms. Draw our existing state geometry on every map, including fallback.
  addStateBoundaries(L,map,window.statesData);
