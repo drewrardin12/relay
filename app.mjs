@@ -1,3 +1,4 @@
+import {metadata as realtimeMetadata} from './sync-engine.mjs?v=20261027-low-read';
 import {renderNote,installNoteEditors} from './note-format.mjs?v=20261022-lists';
 import {amenityStatus} from './amenity-status.mjs?v=20261022';
 import {renderDock} from './nav-dock.mjs?v=20261022-report';
@@ -12,7 +13,7 @@ import {includeManifestPositions} from './course-geometry.mjs?v=20261020-map-upd
 function activityIndicators(c){const activity=activityIndex.get(c.id)||{calls:0,sentEmails:0};return `<span class="contact-activity">${[['call',activity.calls,'recorded calls'],['email',activity.sentEmails,'sent emails']].map(([kind,count,label])=>`<span class="activity-channel" role="img" aria-label="${count} ${label}" title="${count} ${label}">${icon(kind)}<i class="activity-dot ${count?'filled':''}"></i></span>`).join('')}</span>`;}
 import {icon} from './icons.mjs?v=20261007-no-family-history';
 import {prepareDriveSignIn,authorizeDrive,driveAuthorized,disconnectDrive,syncWorkingCopy,makeAccountMaster,payloadHash,privateHostActive,readPrivateEmailHistory} from './drive-sync.mjs?v=20260928-account-master';
-import {prepareRealtimeSync,realtimeUser,signInRealtimePassword,sendRealtimePasswordReset,signOutRealtime,openRealtimeAccount,establishRealtimeAccount,scheduleRealtimeSave} from './realtime-sync.mjs?v=20261027-cancellations';
+import {prepareRealtimeSync,realtimeUser,signInRealtimePassword,sendRealtimePasswordReset,signOutRealtime,openRealtimeAccount,establishRealtimeAccount,scheduleRealtimeSave,acceptRealtimeState,realtimeRecovery} from './realtime-sync.mjs?v=20261027-low-read';
 import {applyRecipientUpdate} from './recipient-import.mjs';
 import {previewContactCleanup,applyContactCleanup} from './contact-cleanup.mjs?v=20261016-preserve-numbers';
 import {isFriend,recipientEmails,contactFilter} from './recipient-tools.mjs?v=20260929-friends-family';
@@ -114,7 +115,7 @@ async function autoSync(load=false){
  finally{autoSyncRunning=false;render();if(autoSyncQueued){autoSyncQueued=false;scheduleAutoSync();}}
 }
 function realtimeSaveStatus(status,error){realtimeStatus=status==='saved'?'Saved to your Relay account':'Saved on this device; account sync pending';if(error)toast(/quota|resource-exhausted/i.test(error.message||error.code||'')?'Cloud quota reached. Saved on this device; account sync pending.':'Saved on this device. Account sync needs attention.');if(location.hash==='#settings')render();}
-async function save(message='Saved to this working copy'){try{await persist(state);scheduleAutoSync();scheduleRealtimeSave(state,realtimeSaveStatus);if(message)toast(message);return true;}catch{toast('Could not save. Keep this page open and export a backup before reloading.');return false;}}
+async function save(message='Saved to this working copy'){try{const queued=scheduleRealtimeSave(state,realtimeSaveStatus);await persist(state);await queued;scheduleAutoSync();if(message)toast(message);return true;}catch{toast('Could not save. Keep this page open and export a backup before reloading.');return false;}}
 let toastTimer;
 function toast(text,undo){clearTimeout(toastTimer);const el=document.querySelector('#toast');el.textContent=text;if(undo){const b=document.createElement('button');b.textContent='Undo';b.onclick=()=>{undo();el.classList.remove('show');};el.append(b);}el.classList.add('show');toastTimer=setTimeout(()=>el.classList.remove('show'),6500);}
 function go(hash){if(location.hash===hash)render();else location.hash=hash;}
@@ -389,19 +390,20 @@ function showMeetingReminder(){
  openSheet('Journal ready',`<div class="panel"><h3>${e(meetingName(m))}</h3><p class="small subtle">Started ${e(full(m.date))}</p></div><p>You can begin the guided journal today, save at any point, and finish it later from this church’s record.</p><div class="stack">${btn('meeting-debrief','Open journal','primary wide',`data-id="${e(m.id)}"`)}${btn('close-sheet','Later','secondary wide')}</div>`);return true;
 }
 async function applyRealtimeChange(change){
+ if(change.syncStatus){realtimeStatus=change.syncStatus.text;if(location.hash==='#settings')render();return;}
  if(change.integrations){automaticConnections=change.integrations;render();return;}
  const previous={meetings:state.meetings,calendarMeetings:state.calendarMeetings,events:state.events};
- if(change.meta)Object.assign(state,change.meta);else if(change.key)state[change.key]=change.rows;
+ if(change.meta){for(const key of Object.keys(realtimeMetadata(state)))delete state[key];Object.assign(state,change.meta);}else if(change.key)state[change.key]=change.rows;
  const cancellationPending=preserveRelayCancellations(state,previous);
  reconcileContactDesignations(state);
  state.realtimeSync={email:realtimeUser()?.email||'',checkedAt:new Date().toISOString()};
- await persist(state);realtimeStatus='Updated from your Relay account';if(cancellationPending)scheduleRealtimeSave(state,realtimeSaveStatus);render();
+ await persist(state);realtimeStatus='Updated from your Relay account';if(cancellationPending)await scheduleRealtimeSave(state,realtimeSaveStatus);acceptRealtimeState(state);render();
 }
 async function connectRealtimeAccount(){
  const result=await openRealtimeAccount(state,{onRemote:applyRealtimeChange});
  if(result.status==='loaded'){
   state=result.state;reconcileContactDesignations(state);state.realtimeSync={email:result.email,checkedAt:new Date().toISOString()};await persist(state);
-  realtimeReady=true;realtimeStatus='Live sync is on';if(result.cancellationsPending)scheduleRealtimeSave(state,realtimeSaveStatus);render();
+  realtimeReady=true;if(result.cancellationsPending)await scheduleRealtimeSave(state,realtimeSaveStatus);acceptRealtimeState(state);render();
  }else if(result.status==='needs-migration'){
   realtimeReady=false;realtimeStatus='Your secure account is ready. Choose the device containing the newest Relay information once.';render();
  }
@@ -595,7 +597,7 @@ case 'recipient-update':openSheet('Import confirmed recipients',`<form id="recip
   case 'today':document.querySelector('.calendar-month')?.scrollIntoView({behavior:'smooth'});break;
   case 'family-form':openSheet('Add celebration',`<form id="family-form" class="form"><label>Name / celebration<input name="title" required placeholder="Birthday"></label><label>Type<select name="kind"><option value="birthday">Birthday</option><option value="anniversary">Anniversary</option></select></label><label>Date<input name="date" type="date" required></label><p class="hint">Repeats every year. Stays open, with a scheduling warning and a small line icon.</p><div class="submit-row"><button class="primary">Save celebration</button></div></form>`);break;
   case 'connect':openSheet('Read your current records',`<form id="connect" class="form"><p class="small subtle">First export this working copy. This replaces it with a read-only snapshot of your real records, never editing the live app.</p><label>Apps Script deployment URL<input name="endpoint" type="url" placeholder="https://script.google.com/macros/s/…/exec" required></label><label>Existing connection key<input name="secret" type="password" autocomplete="off" required></label><p class="hint">The key is used only for this read and is not saved in this build. It is not a replacement for proper account authentication.</p><div class="submit-row"><button class="primary">Read records</button></div></form>`);break;
-  case 'export':{const blob=new Blob([exportData(state)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`relay-working-copy-${iso()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('Backup exported');break;}
+  case 'export':{const blob=new Blob([JSON.stringify({...JSON.parse(exportData(state)),syncRecovery:realtimeRecovery()},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`relay-working-copy-${iso()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('Backup exported');break;}
  }
 }
 async function submit(form){
