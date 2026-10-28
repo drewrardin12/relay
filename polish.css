@@ -360,11 +360,11 @@ svg:has(>path[d^="M21.174 6.812"]) {stroke-width:2;}
 
 /* Quick amenities retain the established colors; the entire tile opens Yes / No. */
 .support-mosaic .amenity-editable{position:relative;display:block;text-align:left;width:100%;color:var(--text);min-height:115px;cursor:pointer;margin-top:0}
-.amenity-editable .amenity-edit-mark{position:absolute;top:15px;right:13px;opacity:.65}
-.amenity-editable .amenity-edit-mark .icon{width:14px;height:14px}
 .amenity-editable:hover{border-color:var(--amenity-edge,var(--gold))}
 .amenity-change-line{display:flex;align-items:center;justify-content:center;gap:18px;margin:24px 0!important;font-size:18px!important;color:var(--muted)}
 .amenity-change-line strong{color:var(--text)}
 .amenity-change-line .icon{width:18px;height:18px;color:var(--gold)}
 .amenity-confirm-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 8px}
 .amenity-confirm-actions button{min-height:48px}
+
+.lodging-mosaic .amenity-editable:last-child{grid-column:1/-1}

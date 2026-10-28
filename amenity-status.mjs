@@ -4,17 +4,17 @@ export function amenityStatus(value){
  return ['Available','Unavailable','Unknown','Yes','No'].includes(text)?text:'Unknown';
 }
 
-export const QUICK_AMENITIES=Object.freeze({lodging:{name:'Missions house',icon:'bed'},rv:{name:'RV hookups',icon:'rv'}});
+export const QUICK_AMENITIES=Object.freeze({lodging:{name:'Missions house',icon:'bed'},rv:{name:'RV hookups',icon:'rv'},handouts:{name:'Bible handouts',icon:'manifest'}});
 const escape=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 export function amenityAnswer(value){const status=amenityStatus(value);return ['Available','Yes'].includes(status)?'yes':['Unavailable','No'].includes(status)?'no':'';}
 export function amenityPatch(key,answer){
- if(!Object.hasOwn(QUICK_AMENITIES,key)||!['yes','no'].includes(answer))throw Error('Choose Yes or No for Missions house or RV hookups.');
+ if(!Object.hasOwn(QUICK_AMENITIES,key)||!['yes','no'].includes(answer))throw Error('Choose Yes or No for a supported amenity.');
  return {[key]:answer==='yes'?'Available':'Unavailable',...(key==='lodging'&&answer==='yes'?{lodgingType:'Missions house'}:{})};
 }
 export function amenityTile(c,key,icon){
  const meta=QUICK_AMENITIES[key];if(!meta)return '';
  const answer=amenityAnswer(c[key]),label=answer==='yes'?'Yes':answer==='no'?'No':'Not set';
- return `<button type="button" class="panel mini-panel amenity-editable ${answer==='yes'?'amenity-available amenity-'+key:''}" data-action="amenity-choice" data-id="${escape(c.id)}" data-amenity="${key}" aria-label="${escape(meta.name)}: ${label}. Change availability" title="Change ${escape(meta.name.toLowerCase())}">${icon(meta.icon)}<span class="amenity-edit-mark" aria-hidden="true">${icon('edit')}</span><h3>${meta.name}</h3><p><span class="dot ${answer==='yes'?'green':answer==='no'?'pink':'unknown'}"></span>${label}</p></button>`;
+ return `<button type="button" class="panel mini-panel amenity-editable ${answer==='yes'?'amenity-available amenity-'+key:''}" data-action="amenity-choice" data-id="${escape(c.id)}" data-amenity="${key}" aria-label="${escape(meta.name)}: ${label}. Change availability" title="Change ${escape(meta.name.toLowerCase())}">${icon(meta.icon)}<h3>${meta.name}</h3><p><span class="dot ${answer==='yes'?'green':answer==='no'?'pink':'unknown'}"></span>${label}</p></button>`;
 }
 export function amenityChoice(c,key,icon){
  const meta=QUICK_AMENITIES[key];if(!meta)return '';
