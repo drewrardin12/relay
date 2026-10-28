@@ -14,7 +14,7 @@ export function lodgingResults(contacts,{query='',kind='',center=null,radius=50,
  .sort((a,b)=>course?a.position.along-b.position.along:center?a.distance-b.distance:String(a.city||'').localeCompare(String(b.city||'')));
 }
 export function lodgingFields(c){
- const select=(label,key,values)=>`<label>${label}<select name="${key}">${values.map(v=>`<option ${c[key]===v?'selected':''}>${e(v)}</option>`).join('')}</select></label>`;
+ const select=(label,key,values)=>`<label>${label}<select name="${key}">${values.map(v=>`<option ${c[key]===v?'selected':''}>${e(v==='Available'?'Yes':v==='Unavailable'?'No':'Not set')}</option>`).join('')}</select></label>`;
  return `<details class="details lodging-edit"><summary>Lodging</summary>${select('Missions house','lodging',['Unknown','Available','Unavailable'])}<input type="hidden" name="lodgingType" value="Missions house">${select('RV hookups','rv',['Unknown','Available','Unavailable'])}<label>Lodging details<textarea name="lodgingNotes" placeholder="Call ahead, family welcome, separate address…">${e(c.lodgingNotes||'')}</textarea></label><label>Last confirmed<input name="lodgingConfirmed" type="date" value="${e(c.lodgingConfirmed||'')}"></label></details>`;
 }
 export function lodgingActions(c,phoneNumbers=[]){

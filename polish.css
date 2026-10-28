@@ -357,3 +357,16 @@ svg:has(>path[d^="M21.174 6.812"]) {stroke-width:2;}
 .finance-category{margin:0 0 17px}.finance-category>div:first-child{display:flex;justify-content:space-between;gap:14px;font-size:12px}.finance-category strong{font-weight:500}.finance-category-track{height:4px;background:#ffffff08;border-radius:4px;margin-top:8px;overflow:hidden}.finance-category-track i{display:block;height:100%;background:var(--gold);border-radius:4px}.finance-category-track .category-love_offering{background:#7eb4cd}.finance-category-track .category-gift{background:#b2a1d1}.finance-category-track .category-insurance{background:#88b79e}.finance-category-track .category-unresolved{background:#a6aab4}
 .finance-planning>summary{display:flex;justify-content:space-between;gap:12px;align-items:center;list-style:none}.finance-planning>summary:after{content:'＋';color:var(--gold);font-size:18px}.finance-planning[open]>summary:after{content:'−'}.finance-planning summary>span{flex:1}.finance-planning summary strong{font:400 23px var(--serif);text-align:right}.finance-planning small{display:block;font:400 10px/1.5 var(--body);color:var(--muted)}.finance-plan-monthly{font:400 30px var(--serif);margin:25px 0 8px}.finance-plan-monthly>span{display:block;font:400 11px var(--body);color:var(--muted)}.finance-plan-row{display:flex;justify-content:space-between;gap:14px;border-top:1px solid var(--line);padding:13px 0;font-size:11px}.finance-plan-row>strong{flex-shrink:0;font-weight:500;text-align:right}.finance-tool-stack{display:grid;gap:12px;margin-top:12px}.finance-import{display:block;text-align:center;cursor:pointer}.finance-tool-stack>p{margin:0}
 @media(max-width:360px){.finance-month-chart{gap:4px}.finance-period{align-items:flex-start}.finance-panel-heading h2{font-size:21px}.finance-report>.panel{padding:17px 13px}}
+
+/* Quick amenities retain the established colors; the entire tile opens Yes / No. */
+.support-mosaic .amenity-editable{position:relative;display:block;text-align:left;width:100%;color:var(--text);min-height:115px;cursor:pointer;margin-top:0}
+.amenity-editable .amenity-edit-mark{position:absolute;top:15px;right:13px;opacity:.65}
+.amenity-editable .amenity-edit-mark .icon{width:14px;height:14px}
+.amenity-editable:hover{border-color:var(--amenity-edge,var(--gold))}
+.amenity-answers{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0 8px}
+.amenity-answer{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:105px;font-size:16px}
+.amenity-answer .icon{width:25px;height:25px}
+.amenity-answer[aria-pressed="true"]{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
+.amenity-answer[data-answer="yes"]{background:var(--amenity-bg);border-color:var(--amenity-edge);color:var(--amenity-accent)}
+.amenity-answer[data-answer="no"]{color:var(--muted)}
+.amenity-answer[data-answer="no"][aria-pressed="true"]{border-color:var(--pink);box-shadow:inset 0 0 0 1px var(--pink);color:var(--pink)}
