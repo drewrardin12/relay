@@ -43,3 +43,9 @@ body:has(#app[data-preaching-clock="true"]){padding:0;margin:0;background:#090c1
 @media(orientation:landscape) and (max-height:600px){.pc-clock-only .pc-digits{font-size:27vh!important}}
 @media(prefers-reduced-motion:reduce){.pc-stage[data-warning="overtime"] .pc-digits:after{animation:none;opacity:1}}
 .pc-reduced-motion .pc-stage[data-warning="overtime"] .pc-digits:after{animation:none;opacity:1}
+
+/* An exit remains reachable even when the bottom controls are hidden or offscreen. */
+.pc-clock-toolbar{position:fixed;z-index:5;top:calc(22px + env(safe-area-inset-top));left:23px;right:23px;display:flex;align-items:center;justify-content:space-between;gap:16px;pointer-events:none}
+.pc-clock-toolbar .pc-button{pointer-events:auto;background:#11161cf2;border-color:#ffffff28;color:#d8dde5;box-shadow:0 3px 15px #0003;min-height:46px}
+.pc-clock-toolbar .pc-clock-back{font-size:13px;padding:10px 14px}
+@media(orientation:landscape) and (max-height:600px){.pc-clock-toolbar{top:14px;left:24px;right:24px}.pc-clock-toolbar .pc-button{min-height:42px}.pc-clock-toolbar .pc-icon{width:42px;height:42px}}
