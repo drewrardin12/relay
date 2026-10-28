@@ -66,7 +66,10 @@ export function createPreachingClock({go,notify=()=>{}}){
   stage.dataset.warning=warning;stage.dataset.paused=String(session.status==='paused');stage.classList.toggle('pc-controls-hidden',hiddenControls);
   const end=root.querySelector('[data-pc-end]');end.textContent=clockOnly?'':formatClock(session.status==='paused'?t+remaining:session.deadline,false);
   root.querySelector('[data-pc-end-label]').textContent=session.status==='paused'?'FINISH ON RESUME':`FINISH AT${!clockOnly&&new Date(session.deadline).toDateString()!==new Date(t).toDateString()?' · '+(session.deadline>t?'TOMORROW':'PREVIOUS DAY'):''}`;
-  const digits=root.querySelector('[data-pc-digits]');digits.textContent=clockOnly?formatClock(t):`${overtime?'+':''}${timerText(remaining)}`;digits.dataset.length=String(digits.textContent.length);digits.setAttribute('aria-label',clockOnly?'Current time '+formatClock(t):`${overtime?'Overtime':'Time remaining'} ${timerText(remaining)}`);
+  const digits=root.querySelector('[data-pc-digits]'),readout=clockOnly?formatClock(t):`${overtime?'+':''}${timerText(remaining)}`;
+  // Static split panels: update glyphs without any flip or rolling animation.
+  if(digits.dataset.readout!==readout){digits.innerHTML=Array.from(readout,char=>`<span aria-hidden="true" class="${/\d/.test(char)?'pc-flip-digit':char===':'?'pc-flip-colon':char==='+'?'pc-flip-plus':'pc-flip-suffix'}">${esc(char)}</span>`).join('');digits.dataset.readout=readout;}
+  digits.dataset.length=String(readout.length);digits.setAttribute('aria-label',clockOnly?'Current time '+formatClock(t):`${overtime?'Overtime':'Time remaining'} ${timerText(remaining)}`);
   root.querySelector('[data-pc-overtime]').hidden=!overtime;root.querySelector('[data-pc-over-count]').textContent=overtime?'+'+timerText(remaining):'';
   const label=session.status==='paused'?'PAUSED':overtime?'OVERTIME':clockOnly?'CLOCK ONLY':'TIME REMAINING';
   const status=root.querySelector('[data-pc-state]');if(status.textContent!==label)status.textContent=label;

@@ -23,3 +23,23 @@ body:has(#app[data-preaching-clock="true"]){padding:0;margin:0;background:#090c1
 @media(prefers-reduced-motion:reduce){.pc-root *,.pc-root *:before,.pc-root *:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 .pc-reduced-motion *,.pc-reduced-motion *:before,.pc-reduced-motion *:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 .pc-root .pc-dialog{margin:auto}
+
+/* Quiet mechanical numerals, with a fixed split rather than a flip animation. */
+@font-face{font-family:Relay Clock;src:url('clock-digits.ttf') format('truetype');font-style:normal;font-weight:600;font-display:swap}
+.pc-digits{--pc-readout-scale:1.2;position:relative;display:flex;align-items:center;justify-content:center;gap:.035em;font-family:'Relay Clock','Arial Narrow',sans-serif;font-weight:600;line-height:1;letter-spacing:0;font-size:calc(var(--pc-digit-size)*var(--pc-readout-scale));text-shadow:0 2px 2px #0004;padding-bottom:.06em;margin-bottom:.12em;isolation:isolate}
+.pc-flip-digit{position:relative;display:inline-flex;align-items:center;justify-content:center;width:.56em;height:1.15em;padding-bottom:.045em;flex:none;border-radius:.055em;background:linear-gradient(#ffffff09 0%,#ffffff04 49.7%,#0005 50%,#ffffff06 50.7%,#ffffff0b 100%);box-shadow:inset 0 1px 0 #ffffff0b,0 3px 7px #0003}
+.pc-flip-digit:after{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:#0005;box-shadow:0 1px 0 #ffffff07;pointer-events:none}
+.pc-flip-colon{font-size:.72em;width:.19em;flex:none;padding-bottom:.12em;color:var(--pc-color)}
+.pc-flip-plus{font-size:.43em;width:.42em;flex:none;align-self:center;color:var(--pc-color)}
+.pc-flip-suffix{font-size:.24em;white-space:pre;align-self:flex-end;padding-bottom:.4em}
+.pc-digits[data-length="7"],.pc-digits[data-length="8"],.pc-digits[data-length="9"]{font-size:calc(var(--pc-digit-size)*.65*var(--pc-readout-scale))}
+.pc-digits[data-length="10"],.pc-digits[data-length="11"],.pc-digits[data-length="12"]{font-size:calc(var(--pc-digit-size)*.56*var(--pc-readout-scale))}
+.pc-stage[data-warning="overtime"] .pc-digits{--pc-readout-scale:1.4}
+.pc-stage[data-warning="overtime"] .pc-digits:after{content:'';position:absolute;left:0;right:0;bottom:-.055em;height:clamp(3px,.025em,8px);border-radius:99px;background:currentColor;animation:pc-overtime-underline 1s steps(1,end) infinite}
+@keyframes pc-overtime-underline{0%,49.999%{opacity:1}50%,100%{opacity:0}}
+.pc-stage[data-paused="true"] .pc-digits:after{animation:none;opacity:1}
+.pc-clock-only .pc-digits{font-weight:600}
+@media(max-width:600px){.pc-clock-only .pc-digits{font-size:18vw}.pc-clock-only .pc-digits[data-length="7"],.pc-clock-only .pc-digits[data-length="8"],.pc-clock-only .pc-digits[data-length="9"]{font-size:16vw}.pc-clock-only .pc-digits[data-length="10"],.pc-clock-only .pc-digits[data-length="11"],.pc-clock-only .pc-digits[data-length="12"]{font-size:12vw}}
+@media(orientation:landscape) and (max-height:600px){.pc-clock-only .pc-digits{font-size:27vh!important}}
+@media(prefers-reduced-motion:reduce){.pc-stage[data-warning="overtime"] .pc-digits:after{animation:none;opacity:1}}
+.pc-reduced-motion .pc-stage[data-warning="overtime"] .pc-digits:after{animation:none;opacity:1}
