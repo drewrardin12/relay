@@ -18,6 +18,6 @@ export function amenityTile(c,key,icon){
 }
 export function amenityChoice(c,key,icon){
  const meta=QUICK_AMENITIES[key];if(!meta)return '';
- const answer=amenityAnswer(c[key]);
- return `<div class="amenity-choice"><p class="small subtle">${escape([c.pastor,c.church].filter(Boolean).join(' · '))}</p><div class="amenity-answers" role="group" aria-label="${meta.name} availability">${['yes','no'].map(value=>`<button type="button" class="secondary amenity-answer ${value==='yes'?'amenity-'+key:''}" data-action="set-amenity" data-id="${escape(c.id)}" data-amenity="${key}" data-answer="${value}" aria-pressed="${answer===value}">${icon(value==='yes'?'check':'close')}<span>${value==='yes'?'Yes':'No'}</span></button>`).join('')}</div></div>`;
+ const current=amenityAnswer(c[key]),next=current==='yes'?'no':'yes',label=current==='yes'?'Yes':current==='no'?'No':'Not set';
+ return `<div class="amenity-choice"><p class="small subtle">${escape([c.pastor,c.church].filter(Boolean).join(' · '))}</p><p class="amenity-change-line"><span>${label}</span>${icon('chevron')}<strong>${next==='yes'?'Yes':'No'}</strong></p><div class="amenity-confirm-actions"><button type="button" class="secondary" data-action="close-sheet">Cancel</button><button type="button" class="primary" data-action="set-amenity" data-id="${escape(c.id)}" data-amenity="${key}" data-answer="${next}">${icon('check')}Confirm</button></div></div>`;
 }

@@ -2,7 +2,7 @@ import {renderSettingsPage} from './settings-design.mjs?v=20261027-settings';
 import {createPreachingClock} from './preaching-clock.mjs?v=20261028-clock-exit';
 import {metadata as realtimeMetadata} from './sync-engine.mjs?v=20261027-low-read';
 import {renderNote,installNoteEditors} from './note-format.mjs?v=20261022-lists';
-import {amenityStatus,QUICK_AMENITIES,amenityTile,amenityChoice,amenityPatch} from './amenity-status.mjs?v=20261028-quick-amenities';
+import {amenityStatus,amenityAnswer,QUICK_AMENITIES,amenityTile,amenityChoice,amenityPatch} from './amenity-status.mjs?v=20261028-amenity-confirm';
 import {renderDock} from './nav-dock.mjs?v=20261022-report';
 import {renderGivingMonth} from './finance-report.mjs?v=20261022-report';
 import {churchGivingHistory,renderChurchGivingDirectory,renderChurchGivingDetail} from './church-giving.mjs?v=20261022';
@@ -566,7 +566,7 @@ case 'recipient-update':openSheet('Import confirmed recipients',`<form id="recip
   case 'gift-form':giftForm(id);break;
   case 'jump-meeting':document.querySelector('#upcoming-meeting')?.scrollIntoView({behavior:'smooth',block:'start'});break;
   case 'contact-tides':openSheet('Active Tides',activeTides(id).map(tideItem).join(''));break;
-  case 'amenity-choice':{const key=el.dataset.amenity;if(!c||!Object.hasOwn(QUICK_AMENITIES,key))break;openSheet(QUICK_AMENITIES[key].name,amenityChoice(c,key,icon));break;}
+  case 'amenity-choice':{const key=el.dataset.amenity;if(!c||!Object.hasOwn(QUICK_AMENITIES,key))break;openSheet('Switch '+QUICK_AMENITIES[key].name+' '+(amenityAnswer(c[key])==='yes'?'off':'on')+'?',amenityChoice(c,key,icon));break;}
   case 'set-amenity':{
    const key=el.dataset.amenity;if(!c||!Object.hasOwn(QUICK_AMENITIES,key)||!['yes','no'].includes(el.dataset.answer))break;
    const patch=amenityPatch(key,el.dataset.answer),before=Object.fromEntries(Object.keys(patch).map(k=>[k,{exists:Object.hasOwn(c,k),value:c[k]}]));
