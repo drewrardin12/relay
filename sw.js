@@ -1,4 +1,4 @@
-const CACHE='relay-shell-v105-handout-switch';
+const CACHE='relay-shell-v106-clock-keypad';
 const STATE_SEARCH_SHELL=['state-search.mjs?v=20261022','amenity-status.mjs?v=20261022','map-style.mjs?v=20261022','course-planner.mjs?v=20261022-ios','lodging.mjs?v=20261022-ios'];
 const SHELL=['./','index.html','styles.css','polish.css','app.mjs','contact-actions.mjs','realtime-sync.mjs','contact-cleanup.mjs','us-map.mjs','domain.mjs','icons.mjs','seed.mjs','store.mjs','polarsteps-journal.mjs','tide-reconciliation.mjs','contact-polish.mjs','meeting-debrief.mjs','device-activity.mjs','data-health.mjs','calendar-sync.mjs','finance.mjs','finance-plan.mjs','manifest.webmanifest','logo.png','logo-transparent.svg','helm.webp','manifest.webp','voyage.webp','tides.webp','contours.svg','parchment.svg'];
 SHELL.push('nav-dock.mjs?v=20261022-report','finance-report.mjs?v=20261022-report','finance-plan.mjs?v=20261022-report');
@@ -15,6 +15,7 @@ SHELL.push('app.mjs?v=20261028-clock-exit','preaching-clock.mjs?v=20261028-clock
 SHELL.push('app.mjs?v=20261028-quick-amenities','amenity-status.mjs?v=20261028-quick-amenities','lodging.mjs?v=20261028-quick-amenities','polish.css?v=20261028-quick-amenities');
 SHELL.push('app.mjs?v=20261028-amenity-confirm','amenity-status.mjs?v=20261028-amenity-confirm','polish.css?v=20261028-amenity-confirm');
 SHELL.push('app.mjs?v=20261028-handout-switch','amenity-status.mjs?v=20261028-handout-switch','polish.css?v=20261028-handout-switch');
+SHELL.push('app.mjs?v=20261029-clock-keypad','preaching-clock.mjs?v=20261029-clock-keypad','preaching-clock.css?v=20261029-clock-keypad');
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll([...SHELL,...STATE_SEARCH_SHELL].map(url=>new Request(url,{cache:'reload'})))).then(()=>self.skipWaiting())));
 SHELL.push('relay-icon-180.png','relay-icon-192.png','relay-icon-512.png');
 SHELL.push('chart-manifest.svg?v=20261022','chart-voyage.svg?v=20261022','chart-tides.svg?v=20261022');

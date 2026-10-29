@@ -7,10 +7,21 @@ const glyph=name=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 const button=(action,label,{symbol='',cls='',title=label,extra=''}={})=>`<button type="button" data-pc="${action}" class="pc-button ${cls}" aria-label="${esc(title)}" title="${esc(title)}" ${extra}>${symbol?glyph(symbol):''}${label?`<span>${esc(label)}</span>`:''}</button>`;
 const modeNames={end:'End At',duration:'Duration',clock:'Clock Only'};
 function picker(parts,prefix='finish'){
- const select=(label,key,values)=>`<label><span class="pc-sr">${label}</span><select name="${prefix}-${key}" aria-label="${label}">${values.map(v=>`<option value="${v}" ${String(parts[key])===String(v)?'selected':''}>${key==='minute'?String(v).padStart(2,'0'):v}</option>`).join('')}</select></label>`;
- return `<div class="pc-time-picker">${select('Finish hour','hour',Array.from({length:12},(_,i)=>i+1))}<span aria-hidden="true">:</span>${select('Finish minute','minute',Array.from({length:60},(_,i)=>i))}${select('AM or PM','period',['AM','PM'])}</div>`;
+ const number=(label,key,pattern)=>`<label><span class="pc-sr">${label}</span><input type="text" inputmode="numeric" pattern="${pattern}" maxlength="2" required autocomplete="off" enterkeyhint="next" name="${prefix}-${key}" aria-label="${label}" data-pc-time-number="${key}" value="${esc(key==='minute'?String(parts[key]).padStart(2,'0'):parts[key])}"></label>`;
+ return `<div class="pc-time-picker">${number('Finish hour','hour','0?[1-9]|1[0-2]')}<span aria-hidden="true">:</span>${number('Finish minute','minute','[0-5]?[0-9]')}<label><span class="pc-sr">AM or PM</span><select name="${prefix}-period" aria-label="AM or PM">${['AM','PM'].map(value=>`<option ${parts.period===value?'selected':''}>${value}</option>`).join('')}</select></label></div>`;
 }
-function readPicker(form,prefix='finish'){return Object.fromEntries(['hour','minute','period'].map(k=>[k,form.elements.namedItem(prefix+'-'+k).value]));}
+function readPicker(form,prefix='finish'){
+ const parts=Object.fromEntries(['hour','minute','period'].map(k=>[k,form.elements.namedItem(prefix+'-'+k).value.trim()]));
+ if(!/^(0?[1-9]|1[0-2])$/.test(parts.hour)||!/^([0-5]?[0-9])$/.test(parts.minute))throw Error('Enter an hour from 1–12 and minutes from 00–59.');
+ return parts;
+}
+function bindPicker(form){
+ for(const field of form.querySelectorAll('[data-pc-time-number]')){
+  field.addEventListener('focus',()=>field.select());field.addEventListener('click',()=>field.select());
+  field.addEventListener('blur',()=>{if(field.value&&field.checkValidity()&&field.dataset.pcTimeNumber==='minute')field.value=field.value.padStart(2,'0');});
+  if(document.activeElement===field)field.select();
+ }
+}
 function loadSaved(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch{return {};}}
 
 export function createPreachingClock({go,notify=()=>{}}){
@@ -115,7 +126,8 @@ export function createPreachingClock({go,notify=()=>{}}){
  function bindForms(){
   const start=root.querySelector('#pc-start-form');
   if(start){
-   start.onchange=()=>{if(draft.mode==='end')Object.assign(draft,readPicker(start));if(draft.mode==='duration')draft.minutes=Number(start.elements.minutes.value);save();preview();};
+   bindPicker(start);
+   start.onchange=()=>{if(draft.mode==='end'){try{Object.assign(draft,readPicker(start));}catch{preview();return;}}if(draft.mode==='duration')draft.minutes=Number(start.elements.minutes.value);save();preview();};
    start.oninput=()=>preview();
    start.onsubmit=event=>{event.preventDefault();try{
     if(draft.mode==='end')Object.assign(draft,readPicker(start));
@@ -142,8 +154,9 @@ export function createPreachingClock({go,notify=()=>{}}){
  function editFinish(){
   const t=now(),deadline=session.status==='paused'?t+session.remainingMs:session.deadline;
   const dialog=showDialog(`<form id="pc-edit-finish"><h2 id="pc-dialog-title">Finish at</h2>${picker(timeParts(deadline),'edit')}<p class="pc-edit-preview"></p><div class="pc-dialog-actions">${button('dismiss','Cancel',{cls:'pc-subtle'})}<button class="pc-button pc-primary" type="submit">Update finish</button></div></form>`),form=dialog.querySelector('form');
-  const preview=()=>{const target=nextFinish(readPicker(form,'edit'));dialog.querySelector('.pc-edit-preview').textContent=finishLabel(target)+' · '+timerText(target-now())+' remaining';};form.onchange=preview;preview();
-  form.onsubmit=event=>{event.preventDefault();session=setFinish(session,nextFinish(readPicker(form,'edit')));clockNotice='';save();dialog.close();update();};
+  bindPicker(form);
+  const preview=()=>{try{const target=nextFinish(readPicker(form,'edit'));dialog.querySelector('.pc-edit-preview').textContent=finishLabel(target)+' · '+timerText(target-now())+' remaining';}catch(error){dialog.querySelector('.pc-edit-preview').textContent=error.message;}};form.onchange=preview;form.oninput=preview;preview();
+  form.onsubmit=event=>{event.preventDefault();try{session=setFinish(session,nextFinish(readPicker(form,'edit')));clockNotice='';save();dialog.close();update();}catch(error){dialog.querySelector('.pc-edit-preview').textContent=error.message;}};
  }
  async function leaveClockOnly(destination='setup'){
   if(session?.mode!=='clock')return;
