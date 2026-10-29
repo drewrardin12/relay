@@ -1,5 +1,5 @@
 import {renderSettingsPage} from './settings-design.mjs?v=20261027-settings';
-import {createPreachingClock} from './preaching-clock.mjs?v=20261029-clock-keypad';
+import {createPreachingClock} from './preaching-clock.mjs?v=20261029-clock-setup';
 import {metadata as realtimeMetadata} from './sync-engine.mjs?v=20261027-low-read';
 import {renderNote,installNoteEditors} from './note-format.mjs?v=20261022-lists';
 import {amenityAnswer,QUICK_AMENITIES,amenityTile,amenityChoice,amenityPatch} from './amenity-status.mjs?v=20261028-handout-switch';

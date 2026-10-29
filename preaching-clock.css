@@ -51,3 +51,65 @@ body:has(#app[data-preaching-clock="true"]){padding:0;margin:0;background:#090c1
 @media(orientation:landscape) and (max-height:600px){.pc-clock-toolbar{top:14px;left:24px;right:24px}.pc-clock-toolbar .pc-button{min-height:42px}.pc-clock-toolbar .pc-icon{width:42px;height:42px}}
 
 .pc-root .pc-time-picker input{cursor:text;caret-color:var(--pc-gold);outline-offset:4px}
+
+/* Setup uses the same quiet, mechanical display as the running timer. */
+.pc-setup{max-width:920px;padding:34px 32px 42px}
+.pc-setup-intro{text-align:left;margin:0 0 32px}
+.pc-setup-intro .pc-eyebrow{color:#929ca9;font-size:10px;letter-spacing:.17em}
+.pc-now-preview{font-size:clamp(28px,3.6vw,42px);font-weight:450;margin-top:7px;letter-spacing:-.025em}
+.pc-modes{max-width:540px;margin:0 auto 40px;padding:0;gap:20px;border:0;border-bottom:1px solid #ffffff12;border-radius:0;background:none}
+.pc-modes .pc-button{position:relative;min-height:48px;padding:12px 8px 16px;border:0;border-radius:0;color:#87919f;font-size:13px}
+.pc-modes .pc-button:hover{background:none;color:#e5e8ec}
+.pc-modes .is-selected{background:none;color:#f7f6f2;box-shadow:none}
+.pc-modes .is-selected:after{content:'';position:absolute;left:12%;right:12%;bottom:-1px;height:2px;background:#e0bb7e}
+.pc-setup-card{padding:0;max-width:640px;margin:auto;border:0;border-radius:0;background:none;box-shadow:none}
+.pc-setup-card>.pc-eyebrow{font-size:11px;letter-spacing:.24em;color:#a4adb9}
+.pc-setup-card .pc-time-picker{gap:10px;margin:24px auto 22px}
+.pc-setup-card .pc-time-picker label:not(:last-child){position:relative}
+.pc-root .pc-setup-card .pc-time-picker input{width:168px;height:170px;border:0;border-radius:9px;padding:0 8px 8px;font:600 140px/1 'Relay Clock','Arial Narrow',sans-serif;letter-spacing:0;background:linear-gradient(#ffffff09 0%,#ffffff04 49.7%,#0005 50%,#ffffff06 50.7%,#ffffff0b 100%);box-shadow:inset 0 1px 0 #ffffff0b,0 3px 7px #0003}
+.pc-setup-card .pc-time-picker label:not(:last-child):after{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:#0005;box-shadow:0 1px 0 #ffffff07;pointer-events:none}
+.pc-setup-card .pc-time-picker>span{font:600 92px/1 'Relay Clock','Arial Narrow',sans-serif;color:#949da9;margin:0;padding-bottom:18px}
+.pc-root .pc-setup-card .pc-time-picker label:last-child select{width:77px;height:64px;margin:60px 0 0 6px;padding:0;border:0;border-radius:7px;background:transparent;font-size:25px;font-weight:450;color:#b2bac5;letter-spacing:.01em}
+.pc-root .pc-setup-card .pc-time-picker label:last-child select:hover{background:#ffffff06;color:#e0bb7e}
+.pc-root .pc-setup-card .pc-time-picker input:focus-visible{outline:2px solid #e0bb7e;outline-offset:5px}
+.pc-setup-card .pc-available{gap:10px;margin:24px 0 30px}
+.pc-setup-card .pc-available strong{font:600 34px/1 'Relay Clock','Arial Narrow',sans-serif;letter-spacing:.02em;color:#b2bac5}
+.pc-setup-card .pc-available span{font-size:12px;color:#7e8998}
+.pc-setup-card .pc-start{width:auto;min-width:220px;min-height:52px;margin:0 auto;padding:12px 25px;border:1px solid #e9edf1;border-radius:11px;background:#e9edf1;box-shadow:none;color:#15191f;font-size:15px;font-weight:600}
+.pc-setup-card .pc-start:hover{filter:none;background:#fff;border-color:#fff}
+.pc-setup-card .pc-start svg{width:18px;height:18px}
+.pc-setup-foot{max-width:540px;margin:36px auto 0;padding-top:20px;border-top:1px solid #ffffff0d;color:#7e8998;font-size:11px}
+.pc-presets{max-width:500px;margin:26px auto 22px;gap:12px}
+.pc-presets .pc-button{min-height:84px;border-radius:9px;border-color:#ffffff0b;background:#ffffff04;font:600 52px/1 'Relay Clock','Arial Narrow',sans-serif;box-shadow:inset 0 1px 0 #ffffff08}
+.pc-presets .is-selected{background:#ffffff08;border-color:#b79d7680;color:#f7f6f2}
+.pc-custom-duration{max-width:360px;margin:auto;font-size:12px}
+.pc-root .pc-custom-duration input{border-width:0 0 1px;border-radius:0;border-color:#ffffff28;background:none;font:600 30px/1 'Relay Clock','Arial Narrow',sans-serif}
+.pc-clock-preview{padding:20px 0 32px}
+.pc-clock-preview>svg{width:65px;height:65px;color:#aab3c1;stroke-width:1}
+.pc-clock-preview h2{font-size:26px;color:#b2bac5}
+@media(max-width:600px){
+ .pc-setup{padding:26px 20px 35px}
+ .pc-setup-intro{margin-bottom:25px}
+ .pc-now-preview{font-size:29px}
+ .pc-modes{gap:12px;margin-bottom:32px}
+ .pc-modes .pc-button{font-size:12px;padding:11px 5px 14px}
+ .pc-setup-card .pc-time-picker{gap:7px;margin:23px auto 20px}
+ .pc-root .pc-setup-card .pc-time-picker input{width:clamp(76px,25vw,110px);height:114px;font-size:clamp(70px,24vw,94px);border-radius:7px;padding:0 4px 5px}
+ .pc-setup-card .pc-time-picker>span{font-size:65px;padding-bottom:14px}
+ .pc-root .pc-setup-card .pc-time-picker label:last-child select{width:49px;height:48px;margin:38px 0 0 2px;font-size:19px}
+ .pc-setup-card .pc-available{margin:23px 0 28px;gap:8px}
+ .pc-setup-card .pc-available strong{font-size:28px}
+ .pc-setup-card .pc-available span{font-size:11px}
+ .pc-setup-foot{margin-top:30px;font-size:10px}
+ .pc-presets{gap:10px}
+ .pc-presets .pc-button{min-height:72px;font-size:44px}
+}
+@media(orientation:landscape) and (max-height:600px){
+ .pc-setup{padding-top:18px}
+ .pc-setup-intro{margin-bottom:15px}
+ .pc-modes{margin-bottom:23px}
+ .pc-root .pc-setup-card .pc-time-picker input{height:110px;font-size:92px;width:115px}
+ .pc-root .pc-setup-card .pc-time-picker label:last-child select{margin-top:35px}
+ .pc-setup-card .pc-time-picker>span{font-size:65px;padding-bottom:10px}
+ .pc-setup-card .pc-available{margin:16px 0 21px}
+}
