@@ -368,3 +368,18 @@ svg:has(>path[d^="M21.174 6.812"]) {stroke-width:2;}
 .amenity-confirm-actions button{min-height:48px}
 
 .lodging-mosaic .amenity-editable:last-child{grid-column:1/-1}
+
+.meeting-disclosures{display:grid;gap:8px;margin-top:14px;scroll-margin-top:88px}
+.meeting-disclosure>summary{
+ display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;
+ min-height:44px;padding:9px 12px;list-style:none;cursor:pointer;
+ background:#dacdaf url('parchment.svg');color:#202c34;
+ border:1px solid #ddcdad;border-radius:12px;
+}
+.meeting-disclosure>summary::-webkit-details-marker{display:none}
+.meeting-disclosure>summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.meeting-disclosure>summary time{font-weight:700;color:#5b4828}
+.meeting-disclosure>summary>span{overflow-wrap:anywhere}
+.meeting-chevron{display:flex;color:#776039}
+.meeting-disclosure[open] .meeting-chevron{transform:rotate(90deg)}
+.meeting-disclosure>.meeting-card{margin-top:4px}

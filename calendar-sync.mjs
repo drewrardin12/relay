@@ -50,7 +50,7 @@ export function updateMeetingDetails(state,id,fields){
  const target=all.find(m=>m.id===id);if(!target)throw Error('Meeting not found');
  const matches=all.filter(m=>m.id===id||identity(m)===identity(target)||sameVisit(m,target));
  // Only form-owned fields change; Calendar IDs, history and questionnaires stay intact.
- const patch=Object.fromEntries(['contactId','date','end','time','roles','lodgingVerified','notes'].filter(k=>k in fields).map(k=>[k,fields[k]]));
+ const patch=Object.fromEntries(['contactId','title','date','end','time','roles','lodgingVerified','notes'].filter(k=>k in fields).map(k=>[k,fields[k]]));
  for(const m of matches)Object.assign(m,structuredClone(patch));
  return target;
 }
